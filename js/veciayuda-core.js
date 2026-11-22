@@ -412,7 +412,7 @@ const DEFAULT_INITIAL_DB = {
       vigenciaHasta: '2025-01-03',
       vigente: true,
       firmante: 'Juan Pérez Castillo — Presidente JJVV',
-      validadorUrl: 'veciayuda-landing.html#validador'
+      validadorUrl: 'index.html#validador'
     },
     {
       folio: 'PLC-CR-2024-00128',
@@ -426,7 +426,7 @@ const DEFAULT_INITIAL_DB = {
       vigenciaHasta: '2025-02-12',
       vigente: true,
       firmante: 'Lic. Camila San Martín — Asistente Social DIDECO',
-      validadorUrl: 'veciayuda-landing.html#validador',
+      validadorUrl: 'index.html#validador',
       informeSocialFolio: 'PLC-INF-SOC-2024-00128'
     }
   ]
@@ -752,7 +752,7 @@ const VeciDB = {
       vigenciaHasta: fVenceStr,
       vigente: true,
       firmante: reviewerUser ? `${reviewerUser.nombre} (${reviewerUser.cargo || 'Autoridad'})` : 'Juan Pérez Castillo — Presidente JJVV',
-      validadorUrl: 'veciayuda-landing.html#validador'
+      validadorUrl: 'index.html#validador'
     };
 
     if (!db.certificates) db.certificates = [];
@@ -897,7 +897,7 @@ const VeciDB = {
         vigenciaHasta: fVenceStr,
         vigente: true,
         firmante: reviewerUser ? `${reviewerUser.nombre} — ${reviewerUser.cargo || 'Asistente Social DIDECO'}` : 'Lic. Camila San Martín — Asistente Social DIDECO',
-        validadorUrl: 'veciayuda-landing.html#validador',
+        validadorUrl: 'index.html#validador',
         informeSocialFolio: infFolio
       };
 
@@ -1074,7 +1074,7 @@ const VeciAuth = {
 
   logout() {
     localStorage.removeItem(VECIAYUDA_SESSION_KEY);
-    window.location.href = 'veciayuda-login.html';
+    const inPages = window.location.pathname.includes('/pages/'); window.location.href = inPages ? 'veciayuda-login.html' : 'pages/veciayuda-login.html';
   },
 
   quickSwitch(roleName) {
@@ -1101,7 +1101,7 @@ const VeciAuth = {
     const u = VeciDB.getUserByEmail(email);
     if (u) {
       this.setCurrentUser(u);
-      window.location.href = targetUrl;
+      const inPages = window.location.pathname.includes('/pages/'); window.location.href = inPages ? targetUrl : ('pages/' + targetUrl);
     }
   }
 };
@@ -1377,7 +1377,7 @@ const VeciPDF = {
   </table>
 
   <div class="footer-note">
-    <span>Para verificar la autenticidad de este certificado ingrese a: <strong>veciayuda-landing.html#validador</strong> con el folio <strong>${folio}</strong></span>
+    <span>Para verificar la autenticidad de este certificado ingrese a: <strong>index.html#validador</strong> con el folio <strong>${folio}</strong></span>
     <span>Municipalidad de Padre Las Casas · Región de La Araucanía</span>
   </div>
 </body>

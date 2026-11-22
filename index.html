@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VeciAyuda — Certificados de Residencia Digitales | Municipalidad Padre Las Casas</title>
   <meta name="description" content="Plataforma digital para obtener y verificar certificados de residencia en la comuna de Padre Las Casas. Proceso 100% en línea, avalado por la JJVV.">
-  <link rel="stylesheet" href="style.css">
-  <script src="veciayuda-core.js"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/veciayuda-core.js"></script>
   <style>
     /* ===== LANDING EXTRAS ===== */
     .validator-section {
@@ -202,7 +202,7 @@
 
 <!-- ===== NAVBAR ===== -->
 <nav class="navbar">
-  <a href="veciayuda-landing.html" class="navbar-brand">
+  <a href="index.html" class="navbar-brand">
     <div class="brand-icon">🏛️</div>
     <div class="brand-text">
       <span class="brand-name">VeciAyuda</span>
@@ -211,7 +211,7 @@
   </a>
 
   <ul class="navbar-nav">
-    <li><a href="veciayuda-landing.html" class="nav-link active">Inicio</a></li>
+    <li><a href="index.html" class="nav-link active">Inicio</a></li>
     <li><a href="#validador" class="nav-link">Validar Folio</a></li>
     <li><a href="#como-funciona" class="nav-link">Cómo Funciona</a></li>
 
@@ -220,24 +220,24 @@
       <a href="javascript:void(0)" class="nav-link dropdown-toggle">👥 Paneles VeciAyuda</a>
       <div class="dropdown-menu">
         <div class="dropdown-header">Acceso Directo por Rol</div>
-        <a href="veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino (Solicitudes)</a>
-        <a href="veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario Social (DIDECO)</a>
-        <a href="veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de Vecinos</a>
-        <a href="veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Municipal Admin</a>
+        <a href="pages/veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino (Solicitudes)</a>
+        <a href="pages/veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario Social (DIDECO)</a>
+        <a href="pages/veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de Vecinos</a>
+        <a href="pages/veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Municipal Admin</a>
         <div class="dropdown-divider"></div>
         <div class="dropdown-header">Gestión de Cuenta</div>
-        <a href="veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil Ciudadano</a>
-        <a href="veciayuda-recuperar.html" class="dropdown-item"><span class="d-icon">🔑</span> Recuperar Contraseña</a>
+        <a href="pages/veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil Ciudadano</a>
+        <a href="pages/veciayuda-recuperar.html" class="dropdown-item"><span class="d-icon">🔑</span> Recuperar Contraseña</a>
         <a href="index.html" class="dropdown-item"><span class="d-icon">🏛️</span> Portal Municipal Principal</a>
       </div>
     </li>
 
-    <li><a href="veciayuda-login.html" class="nav-link">Acceso</a></li>
+    <li><a href="pages/veciayuda-login.html" class="nav-link">Acceso</a></li>
   </ul>
 
   <div class="navbar-actions">
-    <a href="veciayuda-login.html" class="btn btn-ghost btn-sm">Ingresar</a>
-    <a href="veciayuda-registro.html" class="btn btn-primary btn-sm">Registrarse</a>
+    <a href="pages/veciayuda-login.html" class="btn btn-ghost btn-sm">Ingresar</a>
+    <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-sm">Registrarse</a>
   </div>
 
   <!-- BOTÓN HAMBURGUESA MÓVIL DESPLEGABLE -->
@@ -247,19 +247,19 @@
 <!-- MENÚ MÓVIL DESPLEGABLE -->
 <div class="mobile-menu-drawer" id="mobileMenuDrawer">
   <div style="font-weight:700; color:var(--accent-cyan); font-size:12px; text-transform:uppercase; margin-bottom:8px;">Menú VeciAyuda</div>
-  <a href="veciayuda-landing.html" class="dropdown-item"><span class="d-icon">🏠</span> Inicio VeciAyuda</a>
+  <a href="index.html" class="dropdown-item"><span class="d-icon">🏠</span> Inicio VeciAyuda</a>
   <a href="#validador" class="dropdown-item" onclick="toggleMobileMenu()"><span class="d-icon">🔍</span> Validar Folio Certificado</a>
   <a href="#como-funciona" class="dropdown-item" onclick="toggleMobileMenu()"><span class="d-icon">📋</span> ¿Cómo Funciona?</a>
-  <a href="veciayuda-registro.html" class="dropdown-item"><span class="d-icon">📝</span> Solicitar Certificado</a>
+  <a href="pages/veciayuda-registro.html" class="dropdown-item"><span class="d-icon">📝</span> Solicitar Certificado</a>
 
   <div class="dropdown-divider"></div>
   <div style="font-weight:700; color:var(--accent-cyan); font-size:12px; text-transform:uppercase; margin:12px 0 8px;">Paneles de Gestión</div>
-  <a href="veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino</a>
-  <a href="veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario Social (DIDECO)</a>
-  <a href="veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de Vecinos</a>
-  <a href="veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Administrador</a>
-  <a href="veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil</a>
-  <a href="veciayuda-login.html" class="dropdown-item"><span class="d-icon">🔐</span> Iniciar Sesión</a>
+  <a href="pages/veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino</a>
+  <a href="pages/veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario Social (DIDECO)</a>
+  <a href="pages/veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de Vecinos</a>
+  <a href="pages/veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Administrador</a>
+  <a href="pages/veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil</a>
+  <a href="pages/veciayuda-login.html" class="dropdown-item"><span class="d-icon">🔐</span> Iniciar Sesión</a>
   <a href="index.html" class="dropdown-item"><span class="d-icon">🏛️</span> Portal Principal</a>
 </div>
 
@@ -276,7 +276,7 @@
       Válido legalmente, con código QR de verificación y vigencia de 90 días.
     </p>
     <div class="hero-actions">
-      <a href="veciayuda-registro.html" class="btn btn-primary btn-lg">Solicitar mi Certificado →</a>
+      <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-lg">Solicitar mi Certificado →</a>
       <a href="#validador" class="btn btn-secondary btn-lg">Validar un Folio</a>
     </div>
 
@@ -490,7 +490,7 @@
         <li>✓ Notificaciones por correo</li>
       </ul>
       <div style="margin-top:var(--sp-lg);">
-        <a href="veciayuda-registro.html" class="btn btn-primary btn-sm">Crear cuenta →</a>
+        <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-sm">Crear cuenta →</a>
       </div>
     </div>
 
@@ -508,7 +508,7 @@
         <li>✓ Reportes mensuales automáticos</li>
       </ul>
       <div style="margin-top:var(--sp-lg);">
-        <a href="veciayuda-login.html" class="btn btn-secondary btn-sm">Acceso JJVV →</a>
+        <a href="pages/veciayuda-login.html" class="btn btn-secondary btn-sm">Acceso JJVV →</a>
       </div>
     </div>
 
@@ -526,7 +526,7 @@
         <li>✓ Reportes para transparencia</li>
       </ul>
       <div style="margin-top:var(--sp-lg);">
-        <a href="veciayuda-login.html" class="btn btn-ghost btn-sm">Acceso Municipal →</a>
+        <a href="pages/veciayuda-login.html" class="btn btn-ghost btn-sm">Acceso Municipal →</a>
       </div>
     </div>
   </div>
@@ -548,8 +548,8 @@
     <div>
       <div class="footer-title">Ciudadanos</div>
       <ul class="footer-links">
-        <li><a href="veciayuda-registro.html">Crear cuenta</a></li>
-        <li><a href="veciayuda-login.html">Iniciar sesión</a></li>
+        <li><a href="pages/veciayuda-registro.html">Crear cuenta</a></li>
+        <li><a href="pages/veciayuda-login.html">Iniciar sesión</a></li>
         <li><a href="#validador">Validar certificado</a></li>
         <li><a href="#como-funciona">Cómo funciona</a></li>
       </ul>
@@ -557,8 +557,8 @@
     <div>
       <div class="footer-title">Institucional</div>
       <ul class="footer-links">
-        <li><a href="veciayuda-login.html">Acceso JJVV</a></li>
-        <li><a href="veciayuda-login.html">Acceso Municipal</a></li>
+        <li><a href="pages/veciayuda-login.html">Acceso JJVV</a></li>
+        <li><a href="pages/veciayuda-login.html">Acceso Municipal</a></li>
         <li><a href="#">Términos de Uso</a></li>
         <li><a href="#">Política de Privacidad</a></li>
       </ul>
