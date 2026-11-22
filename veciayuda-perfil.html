@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil — VeciAyuda | Municipalidad de Padre Las Casas</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="veciayuda-core.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .avatar-upload { position:relative; display:inline-block; }
+    .avatar-lg { width:96px; height:96px; border-radius:50%; background:var(--gradient-main); display:flex; align-items:center; justify-content:center; font-size:38px; font-weight:800; color:#fff; border:3px solid rgba(0,212,232,0.4); box-shadow:0 0 24px rgba(0,212,232,0.2); }
+    .avatar-edit-btn { position:absolute; bottom:0; right:0; width:28px; height:28px; background:var(--accent-cyan); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; cursor:pointer; border:2px solid var(--bg-primary); }
+    .run-locked { background:rgba(255,255,255,0.02); border:1.5px solid rgba(255,255,255,0.06); color:var(--text-muted); cursor:not-allowed; display:flex; align-items:center; gap:var(--sp-sm); padding:12px 16px; border-radius:var(--r-md); font-size:14px; }
+    .run-locked .lock-icon { font-size:16px; }
+    .profile-section-title { font-family:var(--font-brand); font-size:16px; font-weight:700; color:var(--text-primary); margin-bottom:var(--sp-lg); padding-bottom:var(--sp-sm); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:var(--sp-sm); }
+    .danger-zone { background:rgba(239,68,68,0.04); border:1px solid rgba(239,68,68,0.2); border-radius:var(--r-xl); padding:var(--sp-xl); }
+    .notif-toggle { display:flex; justify-content:space-between; align-items:center; padding:var(--sp-md) 0; border-bottom:1px solid var(--border); }
+    .notif-toggle:last-child { border-bottom:none; }
+    .toggle-switch { position:relative; width:44px; height:24px; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; cursor:pointer; inset:0; background:rgba(255,255,255,0.1); border-radius:12px; transition:0.3s; }
+    .toggle-slider::before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:#fff; border-radius:50%; transition:0.3s; }
+    .toggle-switch input:checked + .toggle-slider { background:var(--accent-cyan); }
+    .toggle-switch input:checked + .toggle-slider::before { transform:translateX(20px); }
+    .mobile-header { display:none; align-items:center; justify-content:space-between; padding:var(--sp-md) var(--sp-lg); background:var(--bg-secondary); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; }
+    .hamburger { background:none; border:1px solid var(--border); color:var(--text-secondary); font-size:18px; cursor:pointer; padding:8px 12px; border-radius:var(--r-md); }
+    @media (max-width:768px) { .sidebar { position:fixed; left:-260px; top:0; height:100vh; z-index:200; transition:left 0.3s ease; } .sidebar.open { left:0; } .mobile-header { display:flex; } .main-content { padding:var(--sp-md); } }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- Mobile Header -->
+<div class="mobile-header">
+  <div style="display:flex;align-items:center;gap:var(--sp-sm);">
+    <div class="brand-icon">🏛️</div>
+    <span style="font-family:var(--font-brand);font-weight:700;font-size:14px;">VeciAyuda</span>
+  </div>
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+</div>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <a href="veciayuda-vecino.html" class="sidebar-brand">
+      <div class="brand-icon">🏛️</div>
+      <div class="brand-text">
+        <span class="brand-name">VeciAyuda</span>
+        <span class="brand-sub">Municipalidad PLC</span>
+      </div>
+    </a>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Inicio</div>
+      <ul class="sidebar-nav">
+        <li><a href="veciayuda-vecino.html" class="sidebar-link"><span class="s-icon">🏠</span> Mi Panel</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Mis Trámites</div>
+      <ul class="sidebar-nav">
+        <li><a href="veciayuda-vecino.html" class="sidebar-link"><span class="s-icon">📄</span> Mis Solicitudes</a></li>
+        <li><a href="veciayuda-vecino.html" class="sidebar-link"><span class="s-icon">📥</span> Certificados</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Cuenta</div>
+      <ul class="sidebar-nav">
+        <li><a href="veciayuda-perfil.html" class="sidebar-link active"><span class="s-icon">👤</span> Mi Perfil</a></li>
+        <li><a href="#" class="sidebar-link"><span class="s-icon">🔔</span> Notificaciones <span class="s-badge">3</span></a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">MR</div>
+        <div class="user-info">
+          <div class="user-name">María Rodríguez</div>
+          <div class="user-role">Vecina</div>
+        </div>
+        <a href="veciayuda-login.html" title="Cerrar sesión" style="color:var(--text-muted);font-size:18px;text-decoration:none;margin-left:auto;">⏻</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--sp-md);">
+      <div>
+        <h1 class="page-title">👤 Mi Perfil</h1>
+        <p class="page-subtitle">Administra tu información personal y preferencias de cuenta</p>
+      </div>
+      <a href="veciayuda-vecino.html" class="btn btn-ghost btn-sm">← Volver al Panel</a>
+    </div>
+
+    <!-- PROFILE HEADER CARD -->
+    <div class="card" style="margin-bottom:var(--sp-xl);">
+      <div style="display:flex;align-items:center;gap:var(--sp-xl);flex-wrap:wrap;">
+        <div class="avatar-upload">
+          <div class="avatar-lg">MR</div>
+          <div class="avatar-edit-btn" title="Cambiar foto">✏️</div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <h2 style="font-family:var(--font-brand);font-size:22px;font-weight:800;margin-bottom:4px;">María Isabel Rodríguez Fuentes</h2>
+          <div style="font-size:14px;color:var(--text-secondary);margin-bottom:var(--sp-sm);">maria.rodriguez@gmail.com · +56 9 8765 4321</div>
+          <div style="display:flex;gap:var(--sp-sm);flex-wrap:wrap;">
+            <span class="badge badge-resolved">✓ Cuenta Verificada</span>
+            <span class="tag">Vecina</span>
+            <span class="tag">JJVV Villa Los Pinos</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Miembro desde</div>
+          <div style="font-family:var(--font-brand);font-size:16px;font-weight:700;">Enero 2024</div>
+          <div style="margin-top:10px;">
+            <a href="veciayuda-vecino.html#nueva-solicitud" class="btn btn-primary btn-sm">
+              📜 Pedir Certificado de Residencia
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="gap:var(--sp-xl);margin-bottom:var(--sp-xl);">
+      <!-- DATOS PERSONALES -->
+      <div class="card">
+        <div class="profile-section-title">📋 Datos Personales</div>
+
+        <div style="margin-bottom:var(--sp-lg);">
+          <label class="form-label" style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px;">RUN (no editable)</label>
+          <div class="run-locked">
+            <span class="lock-icon">🔒</span>
+            <span style="font-family:monospace;font-size:15px;letter-spacing:0.05em;">12.345.678-9</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">Inmutable</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nombre Completo <span class="req">*</span></label>
+          <input type="text" class="form-control" value="María Isabel Rodríguez Fuentes" id="nombre">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Fecha de Nacimiento</label>
+            <input type="date" class="form-control" value="1985-03-15" id="fnac">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Teléfono <span class="req">*</span></label>
+            <input type="tel" class="form-control" value="+56 9 8765 4321" id="telefono" placeholder="+56 9 XXXX XXXX">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Correo Electrónico <span class="req">*</span></label>
+          <input type="email" class="form-control" value="maria.rodriguez@gmail.com" id="email">
+        </div>
+
+        <button class="btn btn-primary w-full" onclick="guardarDatos()" style="justify-content:center;margin-top:var(--sp-sm);">💾 Guardar Cambios</button>
+      </div>
+
+      <!-- DIRECCIÓN -->
+      <div class="card">
+        <div class="profile-section-title">🏠 Dirección de Residencia</div>
+
+        <div class="form-group">
+          <label class="form-label">Calle y Número <span class="req">*</span></label>
+          <input type="text" class="form-control" value="Av. Las Araucarias 1234" id="calle">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Villa / Población</label>
+          <input type="text" class="form-control" value="Villa Los Pinos" id="villa">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Sector</label>
+            <select class="form-control" id="sector">
+              <option selected>Urbano</option>
+              <option>Rural</option>
+              <option>Comunidad Indígena</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Junta de Vecinos</label>
+            <select class="form-control" id="jjvv">
+              <option selected>JJVV Villa Los Pinos</option>
+              <option>JJVV Sector Rural Metrenco</option>
+              <option>JJVV Población Rahue</option>
+              <option>JJVV Villa Santa Elena</option>
+              <option>JJVV Comunidad Lof Truf Truf</option>
+              <option>JJVV Villa Las Flores</option>
+              <option>No lo sé / No pertenezco</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Referencia de Ubicación (opcional)</label>
+          <textarea class="form-control" rows="2" placeholder="Ej: A 100m del consultorio, frente al almacén verde...">Frente a la plaza principal, sector norte</textarea>
+        </div>
+
+        <button class="btn btn-primary w-full" onclick="guardarDireccion()" style="justify-content:center;margin-top:var(--sp-sm);">💾 Actualizar Dirección</button>
+      </div>
+    </div>
+
+    <!-- SEGURIDAD Y NOTIFICACIONES -->
+    <div class="grid-2" style="gap:var(--sp-xl);margin-bottom:var(--sp-xl);">
+      <!-- CAMBIO CONTRASEÑA -->
+      <div class="card">
+        <div class="profile-section-title">🔑 Seguridad</div>
+        <div class="form-group">
+          <label class="form-label">Contraseña Actual</label>
+          <div style="position:relative;">
+            <input type="password" class="form-control" placeholder="••••••••" id="pass-actual" style="padding-right:50px;">
+            <button onclick="togglePass('pass-actual', this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;">👁</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nueva Contraseña</label>
+          <div style="position:relative;">
+            <input type="password" class="form-control" placeholder="Mínimo 8 caracteres" id="pass-nueva" style="padding-right:50px;" oninput="checkPassStrength(this.value)">
+            <button onclick="togglePass('pass-nueva', this)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:16px;">👁</button>
+          </div>
+          <div id="pass-strength" style="display:none;margin-top:6px;">
+            <div class="progress-bar-wrap" style="height:4px;">
+              <div class="progress-bar" id="strength-bar" style="width:0%;transition:width 0.3s;"></div>
+            </div>
+            <span id="strength-label" style="font-size:11px;color:var(--text-muted);">Ingresa una contraseña</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar Nueva Contraseña</label>
+          <input type="password" class="form-control" placeholder="••••••••" id="pass-confirm">
+        </div>
+        <button class="btn btn-primary w-full" onclick="cambiarPassword()" style="justify-content:center;">🔒 Actualizar Contraseña</button>
+      </div>
+
+      <!-- NOTIFICACIONES -->
+      <div class="card">
+        <div class="profile-section-title">🔔 Notificaciones</div>
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:var(--sp-lg);">Elige cómo quieres recibir alertas sobre tus solicitudes y certificados.</p>
+        <div class="notif-toggle">
+          <div>
+            <div style="font-size:14px;font-weight:600;">📧 Correo electrónico</div>
+            <div style="font-size:12px;color:var(--text-muted);">Cambios de estado de solicitudes</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="notif-toggle">
+          <div>
+            <div style="font-size:14px;font-weight:600;">📱 SMS / Teléfono</div>
+            <div style="font-size:12px;color:var(--text-muted);">Alertas urgentes y vencimientos</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="notif-toggle">
+          <div>
+            <div style="font-size:14px;font-weight:600;">🔔 Certificado aprobado</div>
+            <div style="font-size:12px;color:var(--text-muted);">Notificar cuando esté disponible</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="notif-toggle">
+          <div>
+            <div style="font-size:14px;font-weight:600;">⚠️ Vencimiento de certificado</div>
+            <div style="font-size:12px;color:var(--text-muted);">Aviso 15 días antes de vencer</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div class="notif-toggle">
+          <div>
+            <div style="font-size:14px;font-weight:600;">📰 Novedades del portal</div>
+            <div style="font-size:12px;color:var(--text-muted);">Nuevos servicios y mejoras</div>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox">
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <button class="btn btn-secondary w-full" style="justify-content:center;margin-top:var(--sp-lg);">Guardar preferencias</button>
+      </div>
+    </div>
+
+    <!-- HISTORIAL DE ACTIVIDAD -->
+    <div class="card" style="margin-bottom:var(--sp-xl);">
+      <div class="profile-section-title">📊 Historial de Actividad</div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Acción</th>
+              <th>Detalles</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="color:var(--text-muted);white-space:nowrap;">15 Nov 2024</td>
+              <td>📄 Solicitud de certificado</td>
+              <td><span class="ticket-id">CERT-REQ-2024-089</span> — Subsidio Habitacional</td>
+              <td><span class="badge badge-process">En Revisión</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-muted);white-space:nowrap;">03 Oct 2024</td>
+              <td>✅ Certificado emitido</td>
+              <td><span class="ticket-id">CERT-REQ-2024-065</span> — Becas Educacionales</td>
+              <td><span class="badge badge-resolved">Aprobado</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-muted);white-space:nowrap;">12 Ago 2024</td>
+              <td>❌ Solicitud rechazada</td>
+              <td><span class="ticket-id">CERT-REQ-2024-031</span> — Requisito Laboral</td>
+              <td><span class="badge badge-rejected">Rechazada</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-muted);white-space:nowrap;">10 Ago 2024</td>
+              <td>📝 Perfil actualizado</td>
+              <td>Cambio de dirección registrada</td>
+              <td><span class="badge badge-resolved">Completado</span></td>
+            </tr>
+            <tr>
+              <td style="color:var(--text-muted);white-space:nowrap;">15 Ene 2024</td>
+              <td>🎉 Cuenta creada</td>
+              <td>Registro exitoso en VeciAyuda</td>
+              <td><span class="badge badge-resolved">Completado</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ZONA DE PELIGRO -->
+    <div class="danger-zone">
+      <div class="profile-section-title" style="color:var(--danger);border-color:rgba(239,68,68,0.2);">⚠️ Zona de Peligro</div>
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:6px;">Descargar mis datos</h4>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:var(--sp-md);">Exporta todos tus datos personales y trámites en formato PDF/JSON (Ley 19.628).</p>
+          <button class="btn btn-ghost btn-sm" onclick="VeciUI.toast('📦 Exportación de datos solicitada conforme a Ley 19.628.', 'info')">📦 Exportar mis datos</button>
+        </div>
+        <div>
+          <h4 style="font-size:14px;font-weight:700;margin-bottom:6px;color:var(--danger);">Eliminar cuenta</h4>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:var(--sp-md);">Esta acción es permanente. Todos tus datos y certificados serán eliminados.</p>
+          <a href="#modal-delete" class="btn btn-danger btn-sm">🗑️ Eliminar mi cuenta</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL ELIMINAR CUENTA -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal-box" style="max-width:460px;">
+    <a href="#" class="modal-close">✕</a>
+    <div style="text-align:center;margin-bottom:var(--sp-xl);">
+      <div style="font-size:48px;margin-bottom:var(--sp-md);">⚠️</div>
+      <h3 class="modal-title" style="color:var(--danger);">¿Eliminar tu cuenta?</h3>
+      <p style="font-size:14px;color:var(--text-secondary);">Esta acción es <strong>permanente e irreversible</strong>. Se eliminarán todos tus datos personales, historial de solicitudes y certificados.</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Para confirmar, escribe tu RUN:</label>
+      <input type="text" class="form-control" placeholder="12.345.678-9" id="confirm-run">
+    </div>
+    <div style="display:flex;gap:var(--sp-md);">
+      <a href="#" class="btn btn-ghost w-full" style="justify-content:center;">Cancelar</a>
+      <button class="btn btn-danger w-full" onclick="confirmarEliminar()" style="justify-content:center;">🗑️ Sí, eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:999;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px 24px;display:none;align-items:center;gap:12px;box-shadow:var(--shadow-lg);max-width:360px;animation:modal-in 0.3s ease;">
+  <span id="toast-icon" style="font-size:20px;">✓</span>
+  <div>
+    <div id="toast-title" style="font-weight:700;font-size:14px;"></div>
+    <div id="toast-msg" style="font-size:12px;color:var(--text-secondary);"></div>
+  </div>
+</div>
+
+<script>
+  let currentUser = null;
+
+  function initPerfil() {
+    currentUser = (typeof VeciAuth !== 'undefined') ? VeciAuth.getCurrentUser() : null;
+    if (!currentUser && typeof VeciDB !== 'undefined') {
+      currentUser = VeciDB.getUserByEmail('maria.rodriguez@gmail.com') || VeciDB.getUsers()[3];
+    }
+    if (!currentUser) return;
+
+    // Fill in header
+    const initials = currentUser.nombre ? currentUser.nombre.split(' ').map(n=>n[0]).slice(0,2).join('').toUpperCase() : 'U';
+    document.querySelectorAll('.user-avatar, .avatar-lg').forEach(el => el.textContent = initials);
+    document.querySelectorAll('.user-name').forEach(el => el.textContent = currentUser.nombre);
+    document.querySelectorAll('.user-role').forEach(el => el.textContent = currentUser.rol ? currentUser.rol.toUpperCase() : 'VECINO');
+    
+    const h2Title = document.querySelector('.card h2');
+    if (h2Title) h2Title.textContent = currentUser.nombre;
+    const subEmail = document.querySelector('.card div[style*="font-size:14px"]');
+    if (subEmail) subEmail.textContent = `${currentUser.email} · ${currentUser.telefono || '+56 9 8765 4321'}`;
+
+    // Fill in fields
+    const runLocked = document.querySelector('.run-locked span[style*="font-family:monospace"]');
+    if (runLocked) runLocked.textContent = currentUser.run || '12.345.678-9';
+    const nombreInput = document.getElementById('nombre');
+    if (nombreInput) nombreInput.value = currentUser.nombre || '';
+    const emailInput = document.getElementById('email');
+    if (emailInput) emailInput.value = currentUser.email || '';
+    const telInput = document.getElementById('telefono');
+    if (telInput) telInput.value = currentUser.telefono || '';
+    const dirInput = document.getElementById('calle');
+    if (dirInput && currentUser.direccion) dirInput.value = currentUser.direccion;
+
+    if (typeof initVeciAyudaTesterBar === 'function') {
+      initVeciAyudaTesterBar();
+    }
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  function showToast(icon, title, msg, success = true) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-icon').textContent = icon;
+    document.getElementById('toast-title').textContent = title;
+    document.getElementById('toast-msg').textContent = msg;
+    t.style.borderColor = success ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)';
+    t.style.display = 'flex';
+    setTimeout(() => { t.style.display = 'none'; }, 4000);
+  }
+
+  function guardarDatos() {
+    if (!currentUser) return;
+    const nombre = document.getElementById('nombre').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const tel = document.getElementById('telefono').value.trim();
+
+    if (!nombre || !email) {
+      showToast('⚠️', 'Campos obligatorios', 'El nombre y correo no pueden estar vacíos.', false);
+      return;
+    }
+
+    currentUser.nombre = nombre;
+    currentUser.email = email;
+    currentUser.telefono = tel;
+
+    if (typeof VeciDB !== 'undefined') {
+      VeciDB.saveUser(currentUser);
+    }
+    showToast('✅', '¡Datos actualizados!', 'Tu información personal fue guardada en el sistema.');
+  }
+
+  function guardarDireccion() {
+    if (!currentUser) return;
+    const calle = document.getElementById('calle').value.trim();
+    const villa = document.getElementById('villa') ? document.getElementById('villa').value.trim() : '';
+    const jjvv = document.getElementById('jjvv') ? document.getElementById('jjvv').value : '';
+
+    if (!calle) {
+      showToast('⚠️', 'Dirección obligatoria', 'La calle y número no pueden estar vacíos.', false);
+      return;
+    }
+
+    currentUser.direccion = calle + (villa ? ', ' + villa : '');
+    if (jjvv) currentUser.jjvv = jjvv;
+
+    if (typeof VeciDB !== 'undefined') {
+      VeciDB.saveUser(currentUser);
+    }
+    showToast('🏠', '¡Dirección actualizada!', 'Tu dirección de residencia fue actualizada exitosamente.');
+  }
+
+  function togglePass(id, btn) {
+    const inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+  }
+
+  function checkPassStrength(val) {
+    const bar = document.getElementById('strength-bar');
+    const label = document.getElementById('strength-label');
+    const wrap = document.getElementById('pass-strength');
+    if (!val) { wrap.style.display = 'none'; return; }
+    wrap.style.display = 'block';
+    let strength = 0;
+    if (val.length >= 8) strength++;
+    if (/[A-Z]/.test(val)) strength++;
+    if (/[0-9]/.test(val)) strength++;
+    if (/[^A-Za-z0-9]/.test(val)) strength++;
+    const widths = ['25%', '50%', '75%', '100%'];
+    const labels = ['Muy débil', 'Débil', 'Buena', 'Muy fuerte'];
+    const colors = ['#EF4444', '#F59E0B', '#3B7BF8', '#10B981'];
+    bar.style.width = widths[strength - 1] || '10%';
+    bar.style.background = colors[strength - 1] || '#EF4444';
+    label.textContent = labels[strength - 1] || 'Muy débil';
+    label.style.color = colors[strength - 1] || '#EF4444';
+  }
+
+  function cambiarPassword() {
+    const actual = document.getElementById('pass-actual').value;
+    const nueva = document.getElementById('pass-nueva').value;
+    const confirm = document.getElementById('pass-confirm').value;
+    if (!actual || !nueva || !confirm) {
+      showToast('⚠️', 'Campos incompletos', 'Debes completar todos los campos de contraseña.', false);
+      return;
+    }
+    if (nueva !== confirm) {
+      showToast('❌', 'Las contraseñas no coinciden', 'La nueva contraseña y la confirmación deben ser iguales.', false);
+      return;
+    }
+    if (nueva.length < 8) {
+      showToast('⚠️', 'Contraseña muy corta', 'La contraseña debe tener al menos 8 caracteres.', false);
+      return;
+    }
+    if (currentUser) {
+      currentUser.password = nueva;
+      if (typeof VeciDB !== 'undefined') {
+        VeciDB.saveUser(currentUser);
+      }
+    }
+    showToast('🔒', '¡Contraseña actualizada!', 'Tu contraseña fue cambiada exitosamente.');
+    ['pass-actual','pass-nueva','pass-confirm'].forEach(id => document.getElementById(id).value = '');
+  }
+
+  function confirmarEliminar() {
+    const run = document.getElementById('confirm-run').value.trim();
+    if (!currentUser || run !== currentUser.run) {
+      showToast('❌', 'RUN incorrecto', 'El RUN ingresado no coincide con tu cuenta activa.', false);
+      return;
+    }
+    VeciUI.toast('Tu solicitud de eliminación de cuenta fue registrada para auditoría municipal.', 'info');
+    window.location.hash = '';
+  }
+
+  window.addEventListener('DOMContentLoaded', initPerfil);
+</script>
+</body>
+</html>

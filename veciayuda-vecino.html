@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VeciAyuda — Panel del Vecino</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="veciayuda-core.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ---- Wizard ---- */
+    .wizard-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: var(--sp-xl);
+    }
+    .wizard-step {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      flex: 1;
+      position: relative;
+    }
+    .wizard-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: calc(100% - 120px);
+      left: 120px;
+      height: 2px;
+      background: var(--border);
+    }
+    .wizard-step.done::after,
+    .wizard-step.active::after {
+      background: var(--accent-cyan);
+    }
+    .step-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: var(--bg-secondary);
+      flex-shrink: 0;
+      transition: var(--transition);
+      z-index: 1;
+    }
+    .wizard-step.active .step-num {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 212, 232, 0.15);
+      color: var(--accent-cyan);
+      box-shadow: 0 0 16px rgba(0, 212, 232, 0.3);
+    }
+    .wizard-step.done .step-num {
+      border-color: var(--success);
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+    }
+    .step-label {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .wizard-step.active .step-label { color: var(--accent-cyan); }
+    .wizard-step.done .step-label { color: var(--success); }
+
+    .wizard-panel { display: none; }
+    .wizard-panel.active { display: block; }
+
+    /* ---- upload area enhancement ---- */
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-xl);
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: rgba(0, 212, 232, 0.02);
+    }
+    .upload-area:hover {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 212, 232, 0.05);
+    }
+    .upload-area input[type="file"] { display: none; }
+    .upload-icon { font-size: 2.5rem; margin-bottom: var(--sp-sm); }
+    .upload-label { color: var(--text-secondary); font-size: 0.9rem; }
+    .upload-label strong { color: var(--accent-cyan); }
+
+    /* ---- summary box ---- */
+    .summary-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-lg);
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--sp-sm) 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: var(--text-muted); }
+    .summary-value { color: var(--text-primary); font-weight: 500; }
+
+    /* ---- welcome header ---- */
+    .welcome-header {
+      background: linear-gradient(135deg, var(--bg-card), var(--bg-surface));
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: var(--sp-xl) var(--sp-2xl);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--sp-xl);
+      position: relative;
+      overflow: hidden;
+    }
+    .welcome-header::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(0,212,232,0.1) 0%, transparent 70%);
+    }
+    .welcome-title {
+      font-family: var(--font-brand);
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: var(--sp-xs);
+    }
+    .welcome-date { color: var(--text-secondary); font-size: 0.9rem; }
+
+    .btn-new-request {
+      background: var(--gradient-main);
+      color: #fff;
+      border: none;
+      border-radius: var(--r-md);
+      padding: var(--sp-md) var(--sp-xl);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      box-shadow: 0 4px 20px rgba(0, 212, 232, 0.25);
+      transition: var(--transition);
+      white-space: nowrap;
+    }
+    .btn-new-request:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(0, 212, 232, 0.4);
+    }
+
+    /* ---- folio success ---- */
+    .folio-success {
+      display: none;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--r-lg);
+      padding: var(--sp-xl);
+      text-align: center;
+      animation: fadeInUp 0.4s ease;
+    }
+    .folio-success.show { display: block; }
+    .folio-number {
+      font-family: var(--font-brand);
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--success);
+      letter-spacing: 1px;
+      margin: var(--sp-sm) 0;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---- hamburger ---- */
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 16px; left: 16px;
+      z-index: 999;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      width: 44px; height: 44px;
+      cursor: pointer;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .hamburger span {
+      display: block;
+      width: 20px; height: 2px;
+      background: var(--text-primary);
+      border-radius: 2px;
+      transition: var(--transition);
+    }
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 199;
+    }
+    @media (max-width: 768px) {
+      .hamburger { display: flex; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.show { display: block; }
+      .main-content { margin-left: 0 !important; }
+      .welcome-header { flex-direction: column; align-items: flex-start; gap: var(--sp-md); }
+      .wizard-step .step-label { display: none; }
+      .wizard-step::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- Hamburger -->
+<button class="hamburger" id="hamburger" aria-label="Abrir menú">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- ================================================================
+     APP LAYOUT
+================================================================ -->
+<div class="app-layout">
+
+  <!-- ======== SIDEBAR ======== -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-brand);font-size:1rem;">VA</div>
+      <div>
+        <div style="font-family:var(--font-brand);font-weight:700;font-size:1.05rem;line-height:1.1;">VeciAyuda</div>
+        <div style="font-size:0.68rem;color:var(--text-muted);letter-spacing:.5px;">Mun. Padre Las Casas</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">INICIO</div>
+      <nav class="sidebar-nav">
+        <a href="#" class="sidebar-link active">
+          <span class="s-icon">🏠</span> Mi Panel
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">MIS TRÁMITES</div>
+      <nav class="sidebar-nav">
+        <a href="#nueva-solicitud" class="sidebar-link">
+          <span class="s-icon">📜</span> Solicitar Certificado
+        </a>
+        <a href="#mis-certificados" class="sidebar-link">
+          <span class="s-icon">📥</span> Mis Certificados
+        </a>
+        <a href="#mis-solicitudes" class="sidebar-link">
+          <span class="s-icon">📄</span> Historial de Solicitudes
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">CUENTA</div>
+      <nav class="sidebar-nav">
+        <a href="veciayuda-perfil.html" class="sidebar-link">
+          <span class="s-icon">👤</span> Mi Perfil
+        </a>
+        <a href="veciayuda-perfil.html" class="sidebar-link">
+          <span class="s-icon">🔔</span> Notificaciones
+          <span class="s-badge">3</span>
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">MR</div>
+        <div class="user-info">
+          <div class="user-name">María Rodríguez</div>
+          <div class="user-role">Vecina</div>
+        </div>
+        <a href="login.html" title="Cerrar sesión" style="color:var(--text-muted);font-size:1.1rem;margin-left:auto;text-decoration:none;">⏻</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======== MAIN CONTENT ======== -->
+  <main class="main-content" style="padding: var(--sp-xl);">
+
+    <!-- BIENVENIDA -->
+    <div class="welcome-header">
+      <div>
+        <div class="welcome-title gradient-text">¡Hola, María! 👋</div>
+        <div class="welcome-date" id="today-date">Cargando fecha…</div>
+      </div>
+      <a href="#nueva-solicitud" class="btn-new-request">
+        ✏️ Nueva Solicitud &rarr;
+      </a>
+    </div>
+
+    <!-- ALERT SOLICITUD EN PROCESO -->
+    <div class="alert alert-info" style="margin-bottom: var(--sp-xl);">
+      📋 Tu solicitud <strong>CERT-REQ-2024-089</strong> está siendo revisada por <strong>JJVV Villa Los Pinos</strong>. Te notificaremos al correo cuando haya una respuesta.
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="grid-4" style="margin-bottom: var(--sp-2xl);">
+      <div class="stat-card cyan">
+        <div class="stat-icon">📂</div>
+        <div class="stat-value">3</div>
+        <div class="stat-label">Total Solicitudes</div>
+        <div class="stat-change up">↑ Histórico</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">📜</div>
+        <div class="stat-value">1</div>
+        <div class="stat-label">Certificados Vigentes</div>
+        <div class="stat-change up">✓ Vigente</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-value">1</div>
+        <div class="stat-label">En Proceso</div>
+        <div class="stat-change up">En revisión</div>
+      </div>
+      <div class="stat-card red">
+        <div class="stat-icon">✖</div>
+        <div class="stat-value">1</div>
+        <div class="stat-label">Rechazadas</div>
+        <div class="stat-change down">↓ Reenviar</div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         CATÁLOGO DE CERTIFICADOS DISPONIBLES
+    ===================================================== -->
+    <div style="margin-bottom: var(--sp-2xl);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-md); flex-wrap:wrap; gap:var(--sp-sm);">
+        <div>
+          <h3 style="font-family:var(--font-brand); font-size:20px; font-weight:800;">Trámites y Certificados Disponibles</h3>
+          <p style="font-size:13.5px; color:var(--text-secondary);">Selecciona el certificado que necesitas solicitar a tu Junta de Vecinos o Municipio.</p>
+        </div>
+        <span class="tag" style="background:rgba(16,185,129,0.15); color:var(--success); border-color:rgba(16,185,129,0.3);">✓ Trámites Habilitados 24/7</span>
+      </div>
+
+      <div class="grid-3" style="gap:var(--sp-lg);">
+        <!-- CERTIFICADO PRINCIPAL: RESIDENCIA -->
+        <div class="card" style="border: 2px solid var(--accent-cyan); background: linear-gradient(180deg, rgba(0,212,232,0.06) 0%, var(--bg-card) 100%); position:relative;">
+          <div style="position:absolute; top:12px; right:12px;">
+            <span class="badge" style="background:rgba(0,212,232,0.2); color:var(--accent-cyan); border:1px solid rgba(0,212,232,0.4); font-size:11px;">⭐ Trámite Principal</span>
+          </div>
+          <div style="font-size:36px; margin-bottom:var(--sp-sm);">📜</div>
+          <h4 style="font-family:var(--font-brand); font-size:17px; font-weight:700; margin-bottom:6px;">Certificado de Residencia</h4>
+          <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:var(--sp-md);">
+            Documento legal oficial emitido por la JJVV de Padre Las Casas que acredita formalmente tu domicilio ante instituciones públicas y privadas.
+          </p>
+          <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:var(--sp-lg); display:flex; flex-direction:column; gap:4px;">
+            <div>• Vigencia legal: <strong>90 días</strong></div>
+            <div>• Incluye: <strong>Código QR y Folio Único</strong></div>
+            <div>• Válido para: <strong>Subsidios, Becas, Bancos, Empleo</strong></div>
+          </div>
+          <a href="#nueva-solicitud" class="btn btn-primary w-full" onclick="document.getElementById('tipo-certificado').value='residencia-estandar';" style="justify-content:center; font-size:13.5px;">
+            Solicitar Certificado de Residencia →
+          </a>
+        </div>
+
+        <!-- CERTIFICADO RURAL -->
+        <div class="card">
+          <div style="font-size:36px; margin-bottom:var(--sp-sm);">🌾</div>
+          <h4 style="font-family:var(--font-brand); font-size:17px; font-weight:700; margin-bottom:6px;">Certificado Residencia Rural</h4>
+          <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:var(--sp-md);">
+            Para vecinos de sectores rurales y comunidades indígenas (Metrenco, Boroa, Coilaco, Huichahue) con validación especial territorial.
+          </p>
+          <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:var(--sp-lg); display:flex; flex-direction:column; gap:4px;">
+            <div>• Vigencia legal: <strong>90 días</strong></div>
+            <div>• Respaldo con dirigentes rurales</div>
+          </div>
+          <a href="#nueva-solicitud" class="btn btn-ghost w-full" onclick="document.getElementById('tipo-certificado').value='residencia-rural';" style="justify-content:center; font-size:13.5px;">
+            Solicitar Versión Rural →
+          </a>
+        </div>
+
+        <!-- CERTIFICADO ADULTO MAYOR / SOCIAL -->
+        <div class="card">
+          <div style="font-size:36px; margin-bottom:var(--sp-sm);">🤝</div>
+          <h4 style="font-family:var(--font-brand); font-size:17px; font-weight:700; margin-bottom:6px;">Residencia Adulto Mayor / Social</h4>
+          <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:var(--sp-md);">
+            Trámite simplificado prioritario para programas DIDECO, subsidios de agua potable, caja de alimentos y apoyos de emergencia municipal.
+          </p>
+          <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:var(--sp-lg); display:flex; flex-direction:column; gap:4px;">
+            <div>• Tramitación prioritaria: <strong>24-48 hrs</strong></div>
+            <div>• Asistencia social directa</div>
+          </div>
+          <a href="#nueva-solicitud" class="btn btn-ghost w-full" onclick="document.getElementById('tipo-certificado').value='residencia-adulto';" style="justify-content:center; font-size:13.5px;">
+            Solicitar Versión Social →
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         NUEVA SOLICITUD — WIZARD
+    ===================================================== -->
+    <div class="card" id="nueva-solicitud" style="margin-bottom: var(--sp-2xl);">
+      <div class="page-header" style="margin-bottom: var(--sp-lg);">
+        <div class="tag" style="margin-bottom:6px;">Formulario Paso a Paso</div>
+        <h2 class="page-title">Solicitar Certificado de Residencia</h2>
+        <p class="page-subtitle">Complete los 3 pasos guiados para remitir su solicitud a la Junta de Vecinos correspondiente de Padre Las Casas.</p>
+      </div>
+
+      <!-- Steps indicator -->
+      <div class="wizard-steps">
+        <div class="wizard-step active" id="step-ind-1">
+          <div class="step-num">1</div>
+          <div class="step-label">Datos del Certificado</div>
+        </div>
+        <div class="wizard-step" id="step-ind-2">
+          <div class="step-num">2</div>
+          <div class="step-label">Documentos Respaldo</div>
+        </div>
+        <div class="wizard-step" id="step-ind-3">
+          <div class="step-num">3</div>
+          <div class="step-label">Confirmar y Enviar</div>
+        </div>
+      </div>
+
+      <!-- PANEL 1 — Datos -->
+      <div class="wizard-panel active" id="panel-1">
+        <!-- SELECTOR TIPO DE CERTIFICADO -->
+        <div class="form-group" style="background:rgba(0,212,232,0.04); border:1px solid rgba(0,212,232,0.2); border-radius:var(--r-lg); padding:var(--sp-md); margin-bottom:var(--sp-lg);">
+          <label class="form-label" for="tipo-certificado" style="color:var(--accent-cyan); font-weight:700;">Tipo de Certificado Requerido *</label>
+          <select class="form-control" id="tipo-certificado" required style="font-size:15px; font-weight:600;">
+            <option value="residencia-estandar" selected>📜 Certificado de Residencia (Estándar Junta de Vecinos / Municipal)</option>
+            <option value="residencia-rural">🌾 Certificado de Residencia Rural / Comunidades Indígenas</option>
+            <option value="residencia-adulto">👴 Certificado de Residencia Prioritario (Adulto Mayor / Beneficios DIDECO)</option>
+            <option value="residencia-serviu">🏠 Certificado de Residencia para Subsidios MINVU / SERVIU</option>
+          </select>
+          <span class="form-hint" style="color:var(--text-secondary); margin-top:6px;">
+            ✓ Este trámite generará un <strong>Certificado de Residencia digital oficial</strong> con vigencia de 90 días y firma verificable mediante código QR.
+          </span>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label" for="motivo">Motivo de la Solicitud *</label>
+            <select class="form-control" id="motivo" required>
+              <option value="" disabled selected>Seleccione un motivo…</option>
+              <option value="subsidio" selected>Subsidio Habitacional (DS49, DS1, etc.)</option>
+              <option value="becas">Becas Educacionales (JUNAEB, Indígena, etc.)</option>
+              <option value="bancario">Trámites Bancarios / Créditos</option>
+              <option value="laboral">Requisito Laboral / Contratación</option>
+              <option value="serviu">Trámite SERVIU / Títulos de Dominio</option>
+              <option value="notaria">Trámite Notarial</option>
+              <option value="otro">Otro Motivo</option>
+            </select>
+            <span class="form-hint">Finalidad estadística e institucional para la que requiere el certificado de residencia.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="tiempo-residencia">¿Cuánto tiempo lleva en esta dirección? *</label>
+            <select class="form-control" id="tiempo-residencia" required>
+              <option value="" disabled selected>Seleccione…</option>
+              <option value="menos6">Menos de 6 meses</option>
+              <option value="6-12">6 meses a 1 año</option>
+              <option value="1-3">1 a 3 años</option>
+              <option value="3-5">3 a 5 años</option>
+              <option value="mas5">Más de 5 años</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="direccion">Dirección Actual de Residencia *</label>
+          <input type="text" class="form-control" id="direccion"
+            value="Calle Los Aromos 452, Villa Los Pinos, Padre Las Casas"
+            placeholder="Ingrese su dirección completa" />
+          <span class="form-hint">Puede editar si difiere de la registrada en su perfil.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="jjvv">Junta de Vecinos *</label>
+          <select class="form-control" id="jjvv" required>
+            <option value="" disabled selected>Seleccione su Junta de Vecinos…</option>
+            <option value="jjvv-01">JJVV Villa Los Pinos</option>
+            <option value="jjvv-02">JJVV Sector Centro</option>
+            <option value="jjvv-03">JJVV Villa Esperanza</option>
+            <option value="jjvv-04">JJVV Población Arauco</option>
+            <option value="jjvv-05">JJVV Sector Los Quillayes</option>
+            <option value="jjvv-06">JJVV Villa El Roble</option>
+            <option value="jjvv-07">JJVV Sector Rural Norte</option>
+            <option value="no-se">No lo sé / Que el municipio determine</option>
+          </select>
+          <span class="form-hint">Si no sabe a cuál JJVV pertenece, el municipio lo asignará automáticamente.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="descripcion">Descripción Adicional <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
+          <textarea class="form-control" id="descripcion" rows="3"
+            placeholder="Agregue cualquier información relevante para su solicitud…"></textarea>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;margin-top:var(--sp-lg);">
+          <button class="btn btn-primary" onclick="goStep(2)">Siguiente: Documentos &rarr;</button>
+        </div>
+      </div>
+
+      <!-- PANEL 2 — Documentos -->
+      <div class="wizard-panel" id="panel-2">
+        <div class="form-group">
+          <label class="form-label">Boletas de Servicios Básicos *</label>
+          <div class="upload-area" onclick="document.getElementById('file-boletas').click()">
+            <input type="file" id="file-boletas" accept=".pdf,.jpg,.jpeg,.png" multiple
+              onchange="showFileNames(this,'boletas-name')" />
+            <div class="upload-icon">📄</div>
+            <div class="upload-label">
+              <strong>Haga clic para seleccionar</strong> o arrastre el archivo aquí<br/>
+              <small>Agua, luz, gas u otro servicio — PDF, JPG o PNG — Máx. 5 MB por archivo</small>
+            </div>
+          </div>
+          <div id="boletas-name" style="margin-top:var(--sp-sm);font-size:0.82rem;color:var(--accent-cyan);"></div>
+          <span class="form-hint">Al menos una boleta que acredite su domicilio en los últimos 3 meses.</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Contrato de Arriendo o Título de Propiedad <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
+          <div class="upload-area" onclick="document.getElementById('file-contrato').click()">
+            <input type="file" id="file-contrato" accept=".pdf,.jpg,.jpeg,.png"
+              onchange="showFileNames(this,'contrato-name')" />
+            <div class="upload-icon">🏠</div>
+            <div class="upload-label">
+              <strong>Haga clic para seleccionar</strong> o arrastre el archivo aquí<br/>
+              <small>PDF, JPG o PNG — Máx. 5 MB</small>
+            </div>
+          </div>
+          <div id="contrato-name" style="margin-top:var(--sp-sm);font-size:0.82rem;color:var(--accent-cyan);"></div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top: var(--sp-md);">
+          🔒 <strong>Privacidad de documentos:</strong> Sus archivos se transmiten de forma cifrada y solo son accesibles por la JJVV y los funcionarios municipales autorizados, en cumplimiento de la Ley 19.628 sobre protección de datos personales.
+        </div>
+
+        <div style="display:flex;justify-content:space-between;margin-top:var(--sp-lg);">
+          <button class="btn btn-ghost" onclick="goStep(1)">&larr; Anterior</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Siguiente: Confirmar &rarr;</button>
+        </div>
+      </div>
+
+      <!-- PANEL 3 — Confirmar -->
+      <div class="wizard-panel" id="panel-3">
+        <h3 style="margin-bottom:var(--sp-md);font-size:1rem;color:var(--text-secondary);">Revise los datos antes de enviar</h3>
+
+        <div class="summary-box" style="margin-bottom:var(--sp-xl);">
+          <div class="summary-row">
+            <span class="summary-label">Motivo</span>
+            <span class="summary-value" id="sum-motivo">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Dirección</span>
+            <span class="summary-value" id="sum-direccion">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Tiempo de residencia</span>
+            <span class="summary-value" id="sum-tiempo">—</span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Junta de Vecinos</span>
+            <span class="summary-value" id="sum-jjvv">—</span>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-bottom:var(--sp-xl);">
+          📧 Recibirás una confirmación a tu correo <strong>maria@email.com</strong> con el número de folio y el estado de tu solicitud.
+        </div>
+
+        <!-- Resultado del envío -->
+        <div class="folio-success" id="folio-success">
+          <div style="font-size:2.5rem;margin-bottom:var(--sp-sm);">🎉</div>
+          <div style="font-weight:600;margin-bottom:var(--sp-xs);">¡Solicitud enviada exitosamente!</div>
+          <div class="folio-number" id="folio-number">CERT-REQ-2024-XXX</div>
+          <div style="color:var(--text-secondary);font-size:0.9rem;">Guarda este folio para hacer seguimiento. Tu JJVV revisará la solicitud en un plazo de 3 a 5 días hábiles.</div>
+        </div>
+
+        <div id="submit-area" style="display:flex;justify-content:space-between;margin-top:var(--sp-lg);">
+          <button class="btn btn-ghost" onclick="goStep(2)">&larr; Anterior</button>
+          <button class="btn btn-success btn-lg" onclick="submitRequest()">
+            ✅ Enviar Solicitud
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         MIS CERTIFICADOS DE RESIDENCIA VIGENTES
+    ===================================================== -->
+    <div class="card" id="mis-certificados" style="margin-bottom: var(--sp-2xl); border-color: rgba(16,185,129,0.3); background: linear-gradient(180deg, rgba(16,185,129,0.04) 0%, var(--bg-card) 100%);">
+      <div class="page-header" style="margin-bottom:var(--sp-lg); display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:var(--sp-md);">
+        <div>
+          <div class="badge-resolved" style="margin-bottom:6px;">✓ Documento Legal Emitido</div>
+          <h2 class="page-title">Mis Certificados de Residencia Vigentes</h2>
+          <p class="page-subtitle">Certificados de residencia aprobados con firma digital, timbre y código QR de validación.</p>
+        </div>
+        <a href="#nueva-solicitud" class="btn btn-secondary btn-sm">+ Solicitar Nuevo Certificado</a>
+      </div>
+
+      <!-- TARJETA CERTIFICADO VIGENTE -->
+      <div style="background:var(--bg-secondary); border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--r-xl); padding:var(--sp-xl); position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; right:0; width:150px; height:150px; background:radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%); pointer-events:none;"></div>
+        
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:var(--sp-lg); margin-bottom:var(--sp-lg);">
+          <div style="display:flex; gap:var(--sp-md); align-items:flex-start;">
+            <div style="width:52px; height:52px; border-radius:var(--r-lg); background:rgba(16,185,129,0.15); color:var(--success); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">
+              📜
+            </div>
+            <div>
+              <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+                <span style="font-family:var(--font-brand); font-size:18px; font-weight:800; color:var(--text-primary);">Certificado de Residencia Oficial</span>
+                <span class="badge-resolved">VIGENTE (Quedan 42 días)</span>
+              </div>
+              <div style="font-size:13px; color:var(--text-secondary);">
+                Folio Único: <strong style="color:var(--accent-cyan); font-family:monospace;">PLC-CR-2024-00065</strong> · Emitido por: <strong>JJVV Villa Los Pinos</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:var(--sp-sm); flex-wrap:wrap;">
+            <a href="#modal-certificado-oficial" class="btn btn-primary btn-sm">
+              👁️ Ver Certificado Oficial
+            </a>
+            <button class="btn btn-ghost btn-sm" onclick="descargarCertificadoPDF()">
+              📥 Descargar PDF
+            </button>
+            <a href="veciayuda-landing.html#validador" class="btn btn-ghost btn-sm" title="Probar validador público">
+              🔍 Validar QR
+            </a>
+          </div>
+        </div>
+
+        <!-- DETALLES DEL CERTIFICADO -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:var(--sp-md); padding-top:var(--sp-md); border-top:1px solid var(--border); font-size:13px;">
+          <div>
+            <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Titular:</span>
+            <div style="font-weight:600; color:var(--text-primary);">María Isabel Rodríguez Fuentes</div>
+          </div>
+          <div>
+            <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">RUN:</span>
+            <div style="font-weight:600; color:var(--text-primary); font-family:monospace;">12.345.678-9</div>
+          </div>
+          <div>
+            <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Domicilio Acreditado:</span>
+            <div style="font-weight:600; color:var(--text-primary);">Calle Los Aromos 452, Villa Los Pinos</div>
+          </div>
+          <div>
+            <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Emisión / Vencimiento:</span>
+            <div style="font-weight:600; color:var(--text-primary);">03/10/2024 &rarr; 03/01/2025</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         MIS SOLICITUDES
+    ===================================================== -->
+    <div class="card" id="mis-solicitudes">
+      <div class="page-header" style="margin-bottom:var(--sp-lg);">
+        <h2 class="page-title">Historial de Solicitudes</h2>
+        <p class="page-subtitle">Historial completo y trazabilidad de sus trámites de certificados de residencia.</p>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Folio</th>
+              <th>Fecha</th>
+              <th>Motivo</th>
+              <th>JJVV</th>
+              <th>Estado</th>
+              <th style="text-align:right;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="mis-solicitudes-tbody">
+            <!-- Renderizado dinámico desde VeciDB -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ================================================================
+     MODAL — VER DETALLE (CSS :target)
+================================================================ -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal-box" style="max-width:580px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-lg);">
+      <h3 class="modal-title">Detalle de Solicitud</h3>
+      <a href="#" class="modal-close">&times;</a>
+    </div>
+
+    <div style="margin-bottom:var(--sp-lg);">
+      <div style="display:flex;align-items:center;gap:var(--sp-md);margin-bottom:var(--sp-md);">
+        <span class="ticket-id">CERT-REQ-2024-089</span>
+        <span class="badge-process">En Revisión</span>
+      </div>
+      <div class="summary-box">
+        <div class="summary-row"><span class="summary-label">Motivo</span><span class="summary-value">Subsidio Habitacional</span></div>
+        <div class="summary-row"><span class="summary-label">Dirección</span><span class="summary-value">Calle Los Aromos 452, Villa Los Pinos</span></div>
+        <div class="summary-row"><span class="summary-label">JJVV</span><span class="summary-value">JJVV Villa Los Pinos</span></div>
+        <div class="summary-row"><span class="summary-label">F. Solicitud</span><span class="summary-value">15/11/2024</span></div>
+      </div>
+    </div>
+
+    <h4 style="font-size:0.9rem;color:var(--text-secondary);margin-bottom:var(--sp-md);">Seguimiento del trámite</h4>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="timeline-content">
+          <strong>Solicitud recibida</strong>
+          <div style="font-size:0.8rem;color:var(--text-muted);">15/11/2024 — 10:32 hrs</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot done"></div>
+        <div class="timeline-content">
+          <strong>Enviada a JJVV Villa Los Pinos</strong>
+          <div style="font-size:0.8rem;color:var(--text-muted);">16/11/2024 — 09:15 hrs</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot active"></div>
+        <div class="timeline-content">
+          <strong>En revisión por la directiva</strong>
+          <div style="font-size:0.8rem;color:var(--text-secondary);">En proceso — estimado 2 días hábiles</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot pending"></div>
+        <div class="timeline-content">
+          <strong>Pendiente de aprobación municipal</strong>
+          <div style="font-size:0.8rem;color:var(--text-muted);">En espera</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:var(--sp-xl);text-align:right;">
+      <a href="#" class="btn btn-ghost">Cerrar</a>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODAL — CORREGIR SOLICITUD (CSS :target)
+================================================================ -->
+<div class="modal-overlay" id="modal-corregir">
+  <div class="modal-box" style="max-width:580px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-lg);">
+      <h3 class="modal-title">Corregir Solicitud</h3>
+      <a href="#" class="modal-close">&times;</a>
+    </div>
+
+    <div class="alert alert-warning" style="margin-bottom:var(--sp-lg);">
+      ⚠️ Solicitud <strong>CERT-REQ-2024-031</strong> fue rechazada. Corrija los datos y reenvíe sin necesidad de comenzar desde cero.
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="corr-motivo">Motivo</label>
+      <select class="form-control" id="corr-motivo">
+        <option value="laboral" selected>Requisito Laboral</option>
+        <option value="subsidio">Subsidio Habitacional</option>
+        <option value="becas">Becas Educacionales</option>
+        <option value="bancario">Trámites Bancarios</option>
+        <option value="otro">Otro</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="corr-direccion">Dirección de Residencia</label>
+      <input type="text" class="form-control" id="corr-direccion"
+        value="Calle Los Aromos 452, Villa Los Pinos, Padre Las Casas" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="corr-jjvv">Junta de Vecinos</label>
+      <select class="form-control" id="corr-jjvv">
+        <option value="jjvv-01" selected>JJVV Villa Los Pinos</option>
+        <option value="jjvv-02">JJVV Sector Centro</option>
+        <option value="no-se">No lo sé / Que el municipio determine</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Reemplazar Documentos <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
+      <div class="upload-area" onclick="document.getElementById('file-corr').click()">
+        <input type="file" id="file-corr" accept=".pdf,.jpg,.jpeg,.png" multiple
+          onchange="showFileNames(this,'corr-name')" />
+        <div class="upload-icon">📎</div>
+        <div class="upload-label"><strong>Cargue nuevos documentos</strong> si es necesario</div>
+      </div>
+      <div id="corr-name" style="margin-top:var(--sp-sm);font-size:0.82rem;color:var(--accent-cyan);"></div>
+    </div>
+
+    <div style="display:flex;gap:var(--sp-sm);justify-content:flex-end;margin-top:var(--sp-xl);">
+      <a href="#" class="btn btn-ghost">Cancelar</a>
+      <button class="btn btn-primary" onclick="reenviarSolicitudDesdeModal()"> 
+        🔄 Reenviar Solicitud Corregida
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODAL — DOCUMENTO OFICIAL CERTIFICADO DE RESIDENCIA (IMPRIMIBLE / PDF)
+================================================================ -->
+<div class="modal-overlay" id="modal-certificado-oficial">
+  <div class="modal-box" style="max-width:760px; background:#FFFFFF; color:#1A202C; border:2px solid #CBD5E0; box-shadow:0 25px 60px rgba(0,0,0,0.6); padding:40px; font-family:'Inter', sans-serif;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #00D4E8; padding-bottom:15px; margin-bottom:24px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="font-size:38px;">🏛️</div>
+        <div>
+          <div style="font-size:12px; font-weight:800; color:#2D3748; letter-spacing:0.08em; text-transform:uppercase;">República de Chile · Región de La Araucanía</div>
+          <div style="font-size:16px; font-weight:900; color:#1A365D;">I. MUNICIPALIDAD DE PADRE LAS CASAS</div>
+          <div style="font-size:11px; color:#718096; font-weight:600;">Junta de Vecinos N° 14 "Villa Los Pinos" · Personalidad Jurídica N° 348-PLC</div>
+        </div>
+      </div>
+      <a href="#" class="modal-close" style="color:#718096; font-size:26px; text-decoration:none;">&times;</a>
+    </div>
+
+    <!-- FOLIO Y VIGENCIA HEADER -->
+    <div style="display:flex; justify-content:space-between; align-items:center; background:#EDF2F7; padding:10px 16px; border-radius:6px; margin-bottom:24px; font-size:12.5px;">
+      <div>
+        <strong>FOLIO OFICIAL:</strong> <span style="font-family:monospace; color:#0D9488; font-weight:800; font-size:14px;">PLC-CR-2024-00065</span>
+      </div>
+      <div>
+        <strong>EMISIÓN:</strong> 03/10/2024 · <strong>VENCE:</strong> <span style="color:#C53030; font-weight:700;">03/01/2025 (90 días)</span>
+      </div>
+    </div>
+
+    <!-- TÍTULO DOCUMENTO -->
+    <div style="text-align:center; margin-bottom:28px;">
+      <h2 style="font-family:'Outfit', sans-serif; font-size:24px; font-weight:900; color:#1A202C; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:4px;">
+        CERTIFICADO DE RESIDENCIA
+      </h2>
+      <div style="font-size:12px; color:#4A5568; font-style:italic;">
+        Emitido de conformidad con la Ley N° 19.418 de Juntas de Vecinos y Normativa Municipal Vigente
+      </div>
+    </div>
+
+    <!-- TEXTO LEGAL -->
+    <div style="font-size:14.5px; line-height:1.8; color:#2D3748; text-align:justify; margin-bottom:28px;">
+      <p style="margin-bottom:14px;">
+        El Presidente de la <strong>Junta de Vecinos "Villa Los Pinos"</strong> de la comuna de Padre Las Casas, que suscribe al pie de este instrumento, en coordinación con la <strong>Ilustre Municipalidad de Padre Las Casas</strong>, mediante la plataforma oficial digital <em>VeciAyuda</em>:
+      </p>
+      
+      <p style="margin-bottom:14px; background:#F7FAFC; border-left:4px solid #00D4E8; padding:12px 18px; font-size:15px;">
+        <strong>CERTIFICA QUE:</strong><br>
+        Don/Doña <strong>MARÍA ISABEL RODRÍGUEZ FUENTES</strong>, Cédula Nacional de Identidad N° <strong style="font-family:monospace;">12.345.678-9</strong>, tiene residencia fija, habitual y comprobada en:
+        <br>
+        <span style="font-size:16px; font-weight:700; color:#1A365D;">Calle Los Aromos N° 452, Villa Los Pinos, Comuna de Padre Las Casas</span>, Región de La Araucanía.
+      </p>
+
+      <p style="margin-bottom:14px;">
+        Se extiende el presente certificado digital a petición del interesado(a) para ser presentado exclusivamente para trámites de: <strong>BECAS EDUCACIONALES Y SUBSIDIO HABITACIONAL</strong>, teniendo una validez legal improrrogable de <strong>noventa (90) días</strong> contados desde su fecha de emisión.
+      </p>
+    </div>
+
+    <!-- FIRMAS Y CÓDIGO QR -->
+    <div style="display:grid; grid-template-columns:1fr 140px; gap:24px; align-items:center; border-top:1px dashed #CBD5E0; padding-top:20px; margin-bottom:24px;">
+      <div style="display:flex; gap:20px; align-items:center;">
+        <div style="text-align:center;">
+          <div style="font-family:'Brush Script MT', cursive, sans-serif; font-size:24px; color:#2B6CB0; margin-bottom:2px;">Juan Pérez C.</div>
+          <div style="border-top:1px solid #718096; width:180px; margin:0 auto 4px;"></div>
+          <div style="font-size:11px; font-weight:800; color:#2D3748;">JUAN PÉREZ CASTILLO</div>
+          <div style="font-size:10px; color:#718096;">Presidente JJVV Villa Los Pinos</div>
+          <div style="font-size:9px; color:#059669; font-weight:700;">✓ Firma Digital Verificada (Ley 19.799)</div>
+        </div>
+
+        <div style="text-align:center;">
+          <div style="font-size:28px; color:#718096; margin-bottom:2px;">🛡️</div>
+          <div style="border-top:1px solid #718096; width:160px; margin:0 auto 4px;"></div>
+          <div style="font-size:11px; font-weight:800; color:#2D3748;">DIRECCIÓN DIDECO</div>
+          <div style="font-size:10px; color:#718096;">I. Municipalidad de Padre Las Casas</div>
+          <div style="font-size:9px; color:#059669; font-weight:700;">✓ Validación B2G Aprobada</div>
+        </div>
+      </div>
+
+      <!-- QR CODE CONTAINER -->
+      <div style="text-align:center; background:#F7FAFC; border:1px solid #E2E8F0; padding:10px; border-radius:8px;">
+        <div style="width:90px; height:90px; margin:0 auto 6px; background:#fff; border:1px solid #CBD5E0; display:flex; align-items:center; justify-content:center; font-size:10px; text-align:center; font-family:monospace; color:#1A202C; padding:4px;">
+          <!-- QR SVG simulado de alta fidelidad -->
+          <svg viewBox="0 0 100 100" width="80" height="80">
+            <rect width="100" height="100" fill="#fff"/>
+            <!-- Esquinas QR -->
+            <rect x="5" y="5" width="30" height="30" fill="#1A202C"/>
+            <rect x="9" y="9" width="22" height="22" fill="#fff"/>
+            <rect x="13" y="13" width="14" height="14" fill="#1A202C"/>
+            
+            <rect x="65" y="5" width="30" height="30" fill="#1A202C"/>
+            <rect x="69" y="9" width="22" height="22" fill="#fff"/>
+            <rect x="73" y="13" width="14" height="14" fill="#1A202C"/>
+
+            <rect x="5" y="65" width="30" height="30" fill="#1A202C"/>
+            <rect x="9" y="69" width="22" height="22" fill="#fff"/>
+            <rect x="13" y="73" width="14" height="14" fill="#1A202C"/>
+
+            <!-- Puntos QR data -->
+            <rect x="42" y="8" width="6" height="6" fill="#1A202C"/>
+            <rect x="52" y="18" width="6" height="6" fill="#1A202C"/>
+            <rect x="42" y="38" width="8" height="8" fill="#1A202C"/>
+            <rect x="15" y="45" width="6" height="6" fill="#1A202C"/>
+            <rect x="25" y="52" width="6" height="6" fill="#1A202C"/>
+            <rect x="45" y="55" width="10" height="10" fill="#1A202C"/>
+            <rect x="65" y="45" width="8" height="8" fill="#1A202C"/>
+            <rect x="80" y="55" width="8" height="8" fill="#1A202C"/>
+            <rect x="68" y="75" width="8" height="8" fill="#1A202C"/>
+            <rect x="82" y="82" width="8" height="8" fill="#1A202C"/>
+            <rect x="45" y="80" width="8" height="8" fill="#1A202C"/>
+          </svg>
+        </div>
+        <div style="font-size:9px; color:#4A5568; font-weight:700;">ESCANEAR QR</div>
+        <div style="font-size:8px; color:#718096;">Para verificar autenticidad</div>
+      </div>
+    </div>
+
+    <!-- ACCIONES DEL MODAL -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #E2E8F0; padding-top:16px;">
+      <span style="font-size:11px; color:#718096;">Verificación pública disponible en <strong>veciayuda-landing.html#validador</strong></span>
+      <div style="display:flex; gap:10px;">
+        <a href="#" class="btn btn-ghost" style="color:#4A5568; border-color:#CBD5E0;">Cerrar</a>
+        <button class="btn btn-primary" onclick="window.print()" style="background:#0D9488; color:#fff;">
+          🖨️ Imprimir / Guardar PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+  // ---- Fecha actual ----
+  const days = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+  const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const now = new Date();
+  document.getElementById('today-date').textContent =
+    days[now.getDay()] + ', ' + now.getDate() + ' de ' + months[now.getMonth()] + ' de ' + now.getFullYear();
+
+  // ---- Hamburger ----
+  const hamburger = document.getElementById('hamburger');
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebar-overlay');
+  hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  });
+  overlay.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+
+  // ---- Wizard ----
+  let currentStep = 1;
+  function goStep(n) {
+    if (currentStep === 1 && n === 2) {
+      const motivo = document.getElementById('motivo').value;
+      const dir    = document.getElementById('direccion').value.trim();
+      const jjvv   = document.getElementById('jjvv').value;
+      const tiempo = document.getElementById('tiempo-residencia').value;
+      if (!motivo || !dir || !jjvv || !tiempo) {
+        VeciUI.toast('Por favor complete todos los campos obligatorios antes de continuar.', 'warning');
+        return;
+      }
+    }
+    if (n === 3) fillSummary();
+
+    document.getElementById('panel-' + currentStep).classList.remove('active');
+    document.getElementById('step-ind-' + currentStep).classList.remove('active');
+    if (currentStep < n) document.getElementById('step-ind-' + currentStep).classList.add('done');
+
+    currentStep = n;
+    document.getElementById('panel-' + currentStep).classList.add('active');
+    document.getElementById('step-ind-' + currentStep).classList.add('active');
+  }
+
+  function fillSummary() {
+    const motivoSel = document.getElementById('motivo');
+    const jjvvSel   = document.getElementById('jjvv');
+    const tiempoSel = document.getElementById('tiempo-residencia');
+    const tipoCertSel = document.getElementById('tipo-certificado');
+    document.getElementById('sum-motivo').textContent   = (tipoCertSel?.options[tipoCertSel.selectedIndex]?.text ? tipoCertSel.options[tipoCertSel.selectedIndex].text + ' · ' : '') + (motivoSel.options[motivoSel.selectedIndex]?.text || '—');
+    document.getElementById('sum-direccion').textContent = document.getElementById('direccion').value;
+    document.getElementById('sum-tiempo').textContent   = tiempoSel.options[tiempoSel.selectedIndex]?.text || '—';
+    document.getElementById('sum-jjvv').textContent     = jjvvSel.options[jjvvSel.selectedIndex]?.text || '—';
+  }
+
+  function submitRequest() {
+    const user = VeciAuth.getCurrentUser();
+    const motivoSel = document.getElementById('motivo');
+    const jjvvSel = document.getElementById('jjvv');
+    const tiempoSel = document.getElementById('tiempo-residencia');
+    const tipoCertSel = document.getElementById('tipo-certificado');
+    const dir = document.getElementById('direccion').value.trim();
+
+    try {
+      const newReq = VeciDB.createRequest({
+        vecinoId: user ? user.id : 'USR-005',
+        vecinoNombre: user ? user.nombre : 'María Isabel Rodríguez Fuentes',
+        vecinoRun: user ? user.run : '12.345.678-9',
+        vecinoEmail: user ? user.email : 'maria.rodriguez@gmail.com',
+        tipoCertificado: tipoCertSel ? tipoCertSel.value : 'residencia-estandar',
+        tipoCertificadoNombre: tipoCertSel ? tipoCertSel.options[tipoCertSel.selectedIndex]?.text : 'Certificado de Residencia',
+        motivo: motivoSel ? motivoSel.options[motivoSel.selectedIndex]?.text : 'Subsidio Habitacional',
+        direccion: dir || 'Calle Los Aromos 452, Padre Las Casas',
+        tiempoResidencia: tiempoSel ? tiempoSel.options[tiempoSel.selectedIndex]?.text : '3 a 5 años',
+        jjvvId: jjvvSel ? jjvvSel.value : 'jjvv-01',
+        adjuntos: [
+          { nombre: 'boleta_residencia_' + Date.now() + '.pdf', tipo: 'Boleta de Servicios', size: '1.2 MB' }
+        ]
+      });
+
+      document.getElementById('folio-number').textContent = newReq.folio;
+      document.getElementById('folio-success').classList.add('show');
+      document.getElementById('submit-area').style.display = 'none';
+
+      document.getElementById('step-ind-3').classList.remove('active');
+      document.getElementById('step-ind-3').classList.add('done');
+
+      renderVecinoData();
+    } catch (e) {
+      VeciUI.toast('Error al guardar la solicitud: ' + e.message, 'danger');
+    }
+  }
+
+  function renderVecinoData() {
+    const user = VeciAuth.getCurrentUser();
+    if (!user) return;
+
+    // Actualizar nombre en saludo
+    const titleEl = document.querySelector('.welcome-title');
+    if (titleEl) titleEl.textContent = `¡Hola, ${user.nombre.split(' ')[0]}! 👋`;
+
+    // Cargar solicitudes del usuario
+    const reqs = VeciDB.getRequests({ vecinoId: user.id });
+    const tbody = document.getElementById('mis-solicitudes-tbody');
+    if (tbody) {
+      if (reqs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:24px; color:var(--text-muted);">Aún no tienes solicitudes registradas. Solicita tu primer certificado arriba.</td></tr>`;
+      } else {
+        tbody.innerHTML = reqs.map(r => {
+          let badge = '';
+          if (r.estado === 'pendiente' || r.estado === 'en_revision') {
+            badge = `<span class="badge-process">En Revisión</span>`;
+          } else if (r.estado === 'aprobado') {
+            badge = `<span class="badge-resolved">✓ Aprobado</span>`;
+          } else if (r.estado === 'rechazado') {
+            badge = `<span class="badge-rejected">✗ Rechazado</span>`;
+          }
+
+          let actionBtn = '';
+          if (r.estado === 'aprobado') {
+            actionBtn = `<button class="btn btn-sm btn-primary" onclick="descargarCertificadoPDF('${r.folioCertificado || r.folio}')">📥 Descargar PDF Prueba</button>`;
+          } else if (r.estado === 'rechazado') {
+            actionBtn = `<a href="#modal-corregir" class="btn btn-sm btn-warning" onclick="prepararCorreccion('${r.folio}')">✏️ Corregir y reenviar</a>`;
+          } else {
+            actionBtn = `<button class="btn btn-sm btn-ghost" onclick="verDetalleSolicitudVecino('${r.folio}')">🔍 Ver detalle</button> <button class="btn btn-sm btn-ghost" onclick="VeciUI.openDocViewer('${r.folio}', 0, 'vecino')" title="Ver expedientes y respaldos adjuntos">📎 Documentos</button>`;
+          }
+
+          return `
+            <tr>
+              <td><span class="ticket-id">${r.folio}</span></td>
+              <td>${r.fechaSolicitud}</td>
+              <td>${r.motivo}</td>
+              <td>${r.jjvvNombre}</td>
+              <td>${badge}</td>
+              <td style="text-align:right;">${actionBtn}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+  }
+
+  let currentCorrectionFolio = null;
+
+  function verDetalleSolicitudVecino(folio) {
+    const r = VeciDB.getRequestByFolio(folio);
+    if (!r) return;
+
+    const modal = document.getElementById('modal-detalle');
+    if (!modal) return;
+
+    // Actualizar datos del modal
+    const ticketEl = modal.querySelector('.ticket-id');
+    if (ticketEl) ticketEl.textContent = r.folio;
+
+    const badgeEl = modal.querySelector('.badge-process, .badge-resolved, .badge-rejected');
+    if (badgeEl) {
+      if (r.estado === 'aprobado') {
+        badgeEl.className = 'badge-resolved';
+        badgeEl.textContent = '✓ Aprobado';
+      } else if (r.estado === 'rechazado') {
+        badgeEl.className = 'badge-rejected';
+        badgeEl.textContent = '✗ Rechazado';
+      } else {
+        badgeEl.className = 'badge-process';
+        badgeEl.textContent = 'En Revisión';
+      }
+    }
+
+    const summaryBox = modal.querySelector('.summary-box');
+    if (summaryBox) {
+      summaryBox.innerHTML = `
+        <div class="summary-row"><span class="summary-label">Motivo</span><span class="summary-value">${r.motivo}</span></div>
+        <div class="summary-row"><span class="summary-label">Dirección</span><span class="summary-value">${r.direccion}</span></div>
+        <div class="summary-row"><span class="summary-label">JJVV Asignada</span><span class="summary-value">${r.jjvvNombre}</span></div>
+        <div class="summary-row"><span class="summary-label">F. Solicitud</span><span class="summary-value">${r.fechaSolicitud}</span></div>
+        <div class="summary-row" style="margin-top:8px; padding-top:8px; border-top:1px dashed rgba(255,255,255,0.1);">
+          <span class="summary-label">Archivos</span>
+          <span class="summary-value">
+            <button class="btn btn-ghost btn-sm" onclick="VeciUI.openDocViewer('${r.folio}', 0, 'vecino')" style="font-size:12px; padding:3px 8px;">
+              📎 Ver Documentos (${(r.adjuntos || []).length || 2})
+            </button>
+          </span>
+        </div>
+      `;
+    }
+
+    // Actualizar timeline
+    const timelineContainer = modal.querySelector('.timeline');
+    if (timelineContainer) {
+      const historial = r.historial || [
+        { fecha: r.fechaSolicitud + ' — 10:30', accion: 'Solicitud recibida por el sistema digital' },
+        { fecha: r.fechaSolicitud + ' — 10:35', accion: 'Asignada a ' + r.jjvvNombre }
+      ];
+
+      timelineContainer.innerHTML = historial.map((h, idx) => {
+        const isLast = idx === historial.length - 1;
+        const isDone = !isLast || r.estado === 'aprobado';
+        const dotClass = r.estado === 'rechazado' && isLast ? 'style="background:#EF4444; border-color:#EF4444;"' : (isDone ? 'done' : 'active');
+        return `
+          <div class="timeline-item">
+            <div class="timeline-dot ${dotClass}"></div>
+            <div class="timeline-content">
+              <strong>${h.accion}</strong>
+              <div style="font-size:0.8rem; color:var(--text-muted);">${h.fecha}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.location.hash = '#modal-detalle';
+  }
+
+  function prepararCorreccion(folio) {
+    const r = VeciDB.getRequestByFolio(folio);
+    if (!r) return;
+
+    currentCorrectionFolio = folio;
+
+    const modal = document.getElementById('modal-corregir');
+    if (!modal) return;
+
+    const alertBanner = modal.querySelector('.alert-warning');
+    if (alertBanner) {
+      alertBanner.innerHTML = `⚠️ Solicitud <strong>${r.folio}</strong> fue rechazada (${r.motivoRechazo || 'Falta claridad en documento de domicilio'}). Corrija los datos y reenvíe sin comenzar desde cero.`;
+    }
+
+    const dirInput = document.getElementById('corr-direccion');
+    if (dirInput) dirInput.value = r.direccion || '';
+
+    const motivoSel = document.getElementById('corr-motivo');
+    if (motivoSel) {
+      for (let opt of motivoSel.options) {
+        if (opt.text.toLowerCase().includes((r.motivo || '').toLowerCase())) {
+          opt.selected = true;
+          break;
+        }
+      }
+    }
+
+    const jjvvSel = document.getElementById('corr-jjvv');
+    if (jjvvSel && r.jjvvId) jjvvSel.value = r.jjvvId;
+  }
+
+  function reenviarSolicitudDesdeModal() {
+    if (!currentCorrectionFolio) {
+      currentCorrectionFolio = 'CERT-REQ-2024-031';
+    }
+
+    const motivoSel = document.getElementById('corr-motivo');
+    const jjvvSel = document.getElementById('corr-jjvv');
+    const dirInput = document.getElementById('corr-direccion');
+
+    const updatedMotivo = motivoSel ? motivoSel.options[motivoSel.selectedIndex]?.text : 'Subsidio Habitacional';
+    const updatedJjvvId = jjvvSel ? jjvvSel.value : 'jjvv-01';
+    const updatedDir = dirInput ? dirInput.value.trim() : '';
+
+    VeciDB.resubmitRequest(currentCorrectionFolio, {
+      motivo: updatedMotivo,
+      jjvvId: updatedJjvvId,
+      direccion: updatedDir || undefined
+    });
+
+    window.location.hash = '';
+    VeciUI.toast('✅ Solicitud ' + currentCorrectionFolio + ' corregida y reenviada exitosamente a la Junta de Vecinos.');
+    renderVecinoData();
+  }
+
+  function descargarCertificadoPDF(folio) {
+    const cert = VeciDB.getCertificate(folio || 'PLC-CR-2024-00065');
+    if (cert) {
+      VeciPDF.descargarCertificado(cert);
+    } else {
+      const user = VeciAuth.getCurrentUser();
+      VeciPDF.descargarCertificado({
+        folio: folio || 'PLC-CR-2024-00065',
+        nombre: user ? user.nombre : 'María Isabel Rodríguez Fuentes',
+        run: user ? user.run : '12.345.678-9',
+        direccion: user ? user.direccion : 'Calle Los Aromos 452, Villa Los Pinos',
+        jjvv: user ? (user.jjvvNombre || 'JJVV Villa Los Pinos') : 'JJVV Villa Los Pinos',
+        motivo: 'Subsidio Habitacional y Becas',
+        fechaEmision: new Date().toISOString().split('T')[0],
+        vigenciaHasta: '2025-01-03',
+        vigente: true,
+        firmante: 'Juan Pérez Castillo — Presidente JJVV'
+      });
+    }
+  }
+
+  // Cargar datos al iniciar
+  document.addEventListener('DOMContentLoaded', () => {
+    renderVecinoData();
+  });
+
+  document.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', function () {
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

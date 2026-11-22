@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VeciAyuda — Panel JJVV</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="veciayuda-core.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ---- jjvv info card ---- */
+    .jjvv-info-card {
+      background: linear-gradient(135deg, var(--bg-card), var(--bg-surface));
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: var(--sp-xl);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-xl);
+      margin-bottom: var(--sp-2xl);
+      position: relative;
+      overflow: hidden;
+    }
+    .jjvv-info-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      background: radial-gradient(circle, rgba(0,212,232,0.08) 0%, transparent 70%);
+    }
+    .jjvv-logo {
+      width: 72px; height: 72px;
+      border-radius: var(--r-lg);
+      background: var(--gradient-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-brand);
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .jjvv-meta { flex: 1; }
+    .jjvv-name {
+      font-family: var(--font-brand);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: var(--sp-xs);
+    }
+    .jjvv-detail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sp-md);
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+    .jjvv-detail span { display: flex; align-items: center; gap: 4px; }
+    .jjvv-status {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--r-full);
+      padding: 4px 14px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* ---- directiva card ---- */
+    .directiva-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: var(--sp-lg);
+      margin-top: var(--sp-lg);
+    }
+    .directiva-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-lg);
+      text-align: center;
+      transition: var(--transition);
+    }
+    .directiva-card:hover {
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+    }
+    .directiva-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--gradient-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #fff;
+      margin: 0 auto var(--sp-sm);
+    }
+    .directiva-cargo {
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: var(--sp-xs);
+    }
+    .directiva-name {
+      font-weight: 600;
+      margin-bottom: var(--sp-xs);
+    }
+    .directiva-contact {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* ---- summary box ---- */
+    .summary-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: var(--sp-lg);
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--sp-sm) 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-label { color: var(--text-muted); }
+    .summary-value { color: var(--text-primary); font-weight: 500; }
+
+    /* ---- hamburger ---- */
+    .hamburger {
+      display: none;
+      position: fixed;
+      top: 16px; left: 16px;
+      z-index: 999;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      width: 44px; height: 44px;
+      cursor: pointer;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    .hamburger span {
+      display: block;
+      width: 20px; height: 2px;
+      background: var(--text-primary);
+      border-radius: 2px;
+    }
+    .sidebar-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 199;
+    }
+
+    /* ---- sort indicator ---- */
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable:hover { color: var(--accent-cyan); }
+    th.sortable::after { content: ' ⇅'; font-size: 0.75rem; color: var(--text-muted); }
+
+    /* ---- historial section ---- */
+    .historial-filters {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      flex-wrap: wrap;
+      margin-bottom: var(--sp-lg);
+    }
+    .historial-filters input[type="date"],
+    .historial-filters select {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-family: var(--font-main);
+    }
+
+    @media (max-width: 768px) {
+      .hamburger { display: flex; }
+      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+      .sidebar.open { transform: translateX(0); }
+      .sidebar-overlay.show { display: block; }
+      .jjvv-info-card { flex-direction: column; align-items: flex-start; }
+      .directiva-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- Hamburger -->
+<button class="hamburger" id="hamburger" aria-label="Abrir menú">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+<!-- ================================================================
+     APP LAYOUT
+================================================================ -->
+<div class="app-layout">
+
+  <!-- ======== SIDEBAR ======== -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="sidebar-brand">
+      <div style="width:38px;height:38px;border-radius:10px;background:var(--gradient-main);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-brand);font-size:1rem;">VA</div>
+      <div>
+        <div style="font-family:var(--font-brand);font-weight:700;font-size:1.05rem;line-height:1.1;">VeciAyuda</div>
+        <div style="font-size:0.68rem;color:var(--text-muted);letter-spacing:.5px;">Mun. Padre Las Casas</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">JJVV</div>
+      <nav class="sidebar-nav">
+        <a href="javascript:void(0)" onclick="irABandeja('todo')" class="sidebar-link active" id="slink-panel">
+          <span class="s-icon">🏘️</span> Mi Panel JJVV
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">SOLICITUDES</div>
+      <nav class="sidebar-nav">
+        <a href="javascript:void(0)" onclick="irABandeja('pendiente')" class="sidebar-link" id="slink-pendientes">
+          <span class="s-icon">📋</span> Bandeja de Revisión
+          <span class="s-badge" id="slink-badge-pendientes">2</span>
+        </a>
+        <a href="javascript:void(0)" onclick="irABandeja('aprobada')" class="sidebar-link" id="slink-aprobadas">
+          <span class="s-icon">✅</span> Aprobadas
+        </a>
+        <a href="javascript:void(0)" onclick="irABandeja('rechazada')" class="sidebar-link" id="slink-rechazadas">
+          <span class="s-icon">❌</span> Rechazadas
+        </a>
+        <a href="javascript:void(0)" onclick="irAHistorial()" class="sidebar-link" id="slink-historial">
+          <span class="s-icon">📊</span> Historial
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">DIRECTIVA</div>
+      <nav class="sidebar-nav">
+        <a href="javascript:void(0)" onclick="irADirectiva()" class="sidebar-link">
+          <span class="s-icon">👥</span> Nuestra Directiva
+        </a>
+        <a href="javascript:void(0)" onclick="abrirModalCambioDirectiva()" class="sidebar-link">
+          <span class="s-icon">📝</span> Solicitar Cambio
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">CUENTA</div>
+      <nav class="sidebar-nav">
+        <a href="#" class="sidebar-link">
+          <span class="s-icon">👤</span> Mi Perfil
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">JP</div>
+        <div class="user-info">
+          <div class="user-name">Juan Pérez</div>
+          <div class="user-role">Presidente JJVV</div>
+        </div>
+        <a href="javascript:void(0)" onclick="VeciAuth.logout()" title="Cerrar sesión" style="color:var(--text-muted);font-size:1.1rem;margin-left:auto;text-decoration:none;">⏻</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ======== MAIN CONTENT ======== -->
+  <main class="main-content" style="padding: var(--sp-xl);">
+
+    <!-- CABECERA -->
+    <div id="panel-top" style="margin-bottom: var(--sp-xl);">
+      <div class="page-header">
+        <div>
+          <h1 class="page-title" style="font-size:1.6rem;">Panel JJVV Villa Los Pinos</h1>
+          <p class="page-subtitle">
+            Bienvenido, <strong>Juan Pérez</strong> &nbsp;
+            <span class="tag" style="background:rgba(0,212,232,0.12);color:var(--accent-cyan);border:1px solid rgba(0,212,232,0.25);">
+              Presidente
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO CARD JJVV -->
+    <div class="jjvv-info-card">
+      <div class="jjvv-logo">JV</div>
+      <div class="jjvv-meta">
+        <div class="jjvv-name">JJVV Villa Los Pinos</div>
+        <div class="jjvv-detail">
+          <span>📍 Pasaje Los Pinos 12, Padre Las Casas</span>
+          <span>👥 348 socios registrados</span>
+          <span>📅 Fundada el 14/03/2008</span>
+          <span>📧 jjvv.lospinos@padrelascasas.cl</span>
+        </div>
+      </div>
+      <div class="jjvv-status">✓ Activa</div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="grid-4" style="margin-bottom: var(--sp-2xl);">
+      <div class="stat-card gold" onclick="irABandeja('pendiente')" style="cursor:pointer;" title="Clic para filtrar solicitudes pendientes">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-value" id="stat-val-pendientes">2</div>
+        <div class="stat-label">Pendientes de revisión</div>
+        <div class="stat-change down">↑ Requieren atención</div>
+      </div>
+      <div class="stat-card green" onclick="irABandeja('aprobada')" style="cursor:pointer;" title="Clic para filtrar solicitudes aprobadas">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" id="stat-val-aprobadas">1</div>
+        <div class="stat-label">Aprobadas con certificado</div>
+        <div class="stat-change up">✓ Disponibles para descarga</div>
+      </div>
+      <div class="stat-card red" onclick="irABandeja('rechazada')" style="cursor:pointer;" title="Clic para filtrar solicitudes rechazadas">
+        <div class="stat-icon">❌</div>
+        <div class="stat-value" id="stat-val-rechazadas">1</div>
+        <div class="stat-label">Rechazadas con motivo</div>
+        <div class="stat-change down">↓ Requieren subsanación</div>
+      </div>
+      <div class="stat-card cyan" onclick="irAHistorial()" style="cursor:pointer;" title="Clic para ver historial completo">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value" id="stat-val-total">4</div>
+        <div class="stat-label">Total expedientes JJVV</div>
+        <div class="stat-change up">📊 Ver Historial Completo</div>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         BANDEJA DE REVISIÓN
+    ===================================================== -->
+    <div class="card" id="bandeja" style="margin-bottom: var(--sp-2xl);">
+      <div class="page-header" style="margin-bottom:var(--sp-lg);">
+        <div>
+          <h2 class="page-title">Bandeja de Revisión</h2>
+          <p class="page-subtitle">Solicitudes de vecinos pendientes de evaluación por la directiva.</p>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="filter-bar" style="margin-bottom:var(--sp-lg);">
+        <button class="filter-btn active" onclick="setFilter('todo',this)">Todas</button>
+        <button class="filter-btn" onclick="setFilter('pendiente',this)">Pendientes</button>
+        <button class="filter-btn" onclick="setFilter('aprobada',this)">Aprobadas</button>
+        <button class="filter-btn" onclick="setFilter('rechazada',this)">Rechazadas</button>
+        <div class="search-bar" style="margin-left:auto;">
+          <input type="text" placeholder="Buscar por folio o RUN…" id="search-bandeja" oninput="filterTable()" style="background:transparent;border:none;outline:none;color:var(--text-primary);width:200px;" />
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table" id="bandeja-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sortable" onclick="sortTable(1)">Folio</th>
+              <th class="sortable" onclick="sortTable(2)">Vecino</th>
+              <th>RUN</th>
+              <th>Dirección</th>
+              <th>Motivo</th>
+              <th class="sortable" onclick="sortTable(6)">F. Solicitud</th>
+              <th>Adjuntos</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="bandeja-tbody">
+            <tr data-estado="pendiente">
+              <td>1</td>
+              <td><span class="ticket-id">CERT-REQ-2024-089</span></td>
+              <td>María Rodríguez</td>
+              <td>18.456.789-2</td>
+              <td>Calle Los Aromos 452</td>
+              <td>Subsidio Habitacional</td>
+              <td>15/11/2024</td>
+              <td><button class="btn btn-sm btn-ghost" onclick="abrirVisorAdjuntosJJVV('CERT-REQ-2024-089', 0)">📎 Ver (2)</button></td>
+              <td><span class="badge-pending">Pendiente</span></td>
+              <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="#modal-aprobar-1" class="btn btn-sm btn-success">✅ Aprobar</a>
+                <a href="#modal-rechazar-1" class="btn btn-sm btn-danger">❌ Rechazar</a>
+              </td>
+            </tr>
+            <tr data-estado="pendiente">
+              <td>2</td>
+              <td><span class="ticket-id">CERT-REQ-2024-090</span></td>
+              <td>Carlos Mansilla</td>
+              <td>12.345.678-K</td>
+              <td>Pasaje Los Pinos 88</td>
+              <td>Becas Educacionales</td>
+              <td>16/11/2024</td>
+              <td><button class="btn btn-sm btn-ghost" onclick="abrirVisorAdjuntosJJVV('CERT-REQ-2024-090', 0)">📎 Ver (1)</button></td>
+              <td><span class="badge-pending">Pendiente</span></td>
+              <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="#modal-aprobar-2" class="btn btn-sm btn-success">✅ Aprobar</a>
+                <a href="#modal-rechazar-2" class="btn btn-sm btn-danger">❌ Rechazar</a>
+              </td>
+            </tr>
+            <tr data-estado="pendiente">
+              <td>3</td>
+              <td><span class="ticket-id">CERT-REQ-2024-091</span></td>
+              <td>Patricia Huenulef</td>
+              <td>15.789.123-4</td>
+              <td>Villa Los Pinos Blq. 3 Dto. 12</td>
+              <td>SERVIU</td>
+              <td>17/11/2024</td>
+              <td><button class="btn btn-sm btn-ghost" onclick="abrirVisorAdjuntosJJVV('CERT-REQ-2024-091', 0)">📎 Ver (2)</button></td>
+              <td><span class="badge-pending">Pendiente</span></td>
+              <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="#modal-aprobar-3" class="btn btn-sm btn-success">✅ Aprobar</a>
+                <a href="#modal-rechazar-3" class="btn btn-sm btn-danger">❌ Rechazar</a>
+              </td>
+            </tr>
+            <tr data-estado="pendiente">
+              <td>4</td>
+              <td><span class="ticket-id">CERT-REQ-2024-092</span></td>
+              <td>Roberto Antileo</td>
+              <td>9.876.543-1</td>
+              <td>Los Avellanos 231, Sector Norte</td>
+              <td>Trámites Bancarios</td>
+              <td>18/11/2024</td>
+              <td><button class="btn btn-sm btn-ghost" onclick="abrirVisorAdjuntosJJVV('CERT-REQ-2024-092', 0)">📎 Ver (1)</button></td>
+              <td><span class="badge-pending">Pendiente</span></td>
+              <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="#modal-aprobar-4" class="btn btn-sm btn-success">✅ Aprobar</a>
+                <a href="#modal-rechazar-4" class="btn btn-sm btn-danger">❌ Rechazar</a>
+              </td>
+            </tr>
+            <tr data-estado="pendiente">
+              <td>5</td>
+              <td><span class="ticket-id">CERT-REQ-2024-093</span></td>
+              <td>Lorena Quilaqueo</td>
+              <td>17.654.321-9</td>
+              <td>Callejón El Roble 5</td>
+              <td>Notaría</td>
+              <td>19/11/2024</td>
+              <td><button class="btn btn-sm btn-ghost" onclick="abrirVisorAdjuntosJJVV('CERT-REQ-2024-093', 0)">📎 Ver (3)</button></td>
+              <td><span class="badge-pending">Pendiente</span></td>
+              <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a href="#modal-aprobar-5" class="btn btn-sm btn-success">✅ Aprobar</a>
+                <a href="#modal-rechazar-5" class="btn btn-sm btn-danger">❌ Rechazar</a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         HISTORIAL
+    ===================================================== -->
+    <div class="card" id="historial" style="margin-bottom: var(--sp-2xl);">
+      <div class="page-header" style="margin-bottom:var(--sp-lg);">
+        <div>
+          <h2 class="page-title">Historial de Solicitudes</h2>
+          <p class="page-subtitle">Registro completo de solicitudes procesadas.</p>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇️ Exportar CSV</button>
+      </div>
+
+      <div class="historial-filters">
+        <label style="font-size:0.85rem;color:var(--text-secondary);">Desde:</label>
+        <input type="date" id="fecha-desde" value="2024-10-01" />
+        <label style="font-size:0.85rem;color:var(--text-secondary);">Hasta:</label>
+        <input type="date" id="fecha-hasta" value="2024-11-22" />
+        <select class="form-control" id="hist-estado-filter" onchange="applyHistorialFilter()" style="width:auto; min-width:190px; padding:8px 38px 8px 12px;">
+          <option value="todo">Todos los estados</option>
+          <option value="aprobada">Aprobadas</option>
+          <option value="rechazada">Rechazadas</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="applyHistorialFilter()">Filtrar</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table" id="historial-table">
+          <thead>
+            <tr>
+              <th>Folio</th>
+              <th>Vecino</th>
+              <th>RUN</th>
+              <th>Motivo</th>
+              <th>F. Solicitud</th>
+              <th>F. Resolución</th>
+              <th>Estado</th>
+              <th>Observaciones</th>
+            </tr>
+          </thead>
+          <tbody id="historial-tbody">
+            <tr data-estado="aprobada">
+              <td><span class="ticket-id">CERT-REQ-2024-065</span></td>
+              <td>María Rodríguez</td>
+              <td>18.456.789-2</td>
+              <td>Becas Educacionales</td>
+              <td>03/10/2024</td>
+              <td>07/10/2024</td>
+              <td><span class="badge-resolved">Aprobado</span></td>
+              <td style="font-size:0.82rem;color:var(--text-secondary);">Documentación completa. Verificado presencialmente.</td>
+            </tr>
+            <tr data-estado="aprobada">
+              <td><span class="ticket-id">CERT-REQ-2024-071</span></td>
+              <td>Pedro Curaqueo</td>
+              <td>13.222.333-5</td>
+              <td>SERVIU</td>
+              <td>10/10/2024</td>
+              <td>13/10/2024</td>
+              <td><span class="badge-resolved">Aprobado</span></td>
+              <td style="font-size:0.82rem;color:var(--text-secondary);">Residente verificado. JJVV certifica.</td>
+            </tr>
+            <tr data-estado="rechazada">
+              <td><span class="ticket-id">CERT-REQ-2024-031</span></td>
+              <td>María Rodríguez</td>
+              <td>18.456.789-2</td>
+              <td>Requisito Laboral</td>
+              <td>12/08/2024</td>
+              <td>15/08/2024</td>
+              <td><span class="badge-rejected">Rechazado</span></td>
+              <td style="font-size:0.82rem;color:var(--text-secondary);">Documentación insuficiente. Boleta mayor a 90 días.</td>
+            </tr>
+            <tr data-estado="aprobada">
+              <td><span class="ticket-id">CERT-REQ-2024-078</span></td>
+              <td>Francisca Nahuelhual</td>
+              <td>20.111.222-3</td>
+              <td>Subsidio Habitacional</td>
+              <td>24/10/2024</td>
+              <td>27/10/2024</td>
+              <td><span class="badge-resolved">Aprobado</span></td>
+              <td style="font-size:0.82rem;color:var(--text-secondary);">—</td>
+            </tr>
+            <tr data-estado="rechazada">
+              <td><span class="ticket-id">CERT-REQ-2024-055</span></td>
+              <td>Andrés Melinao</td>
+              <td>11.999.888-7</td>
+              <td>Trámites Bancarios</td>
+              <td>18/09/2024</td>
+              <td>22/09/2024</td>
+              <td><span class="badge-rejected">Rechazado</span></td>
+              <td style="font-size:0.82rem;color:var(--text-secondary);">No pertenece a esta JJVV. Derivado a JJVV Sector Centro.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         DIRECTIVA
+    ===================================================== -->
+    <div class="card" id="directiva" style="margin-bottom: var(--sp-2xl);">
+      <div class="page-header" style="margin-bottom:var(--sp-lg);">
+        <div>
+          <h2 class="page-title">Nuestra Directiva</h2>
+          <p class="page-subtitle">Miembros de la directiva vigente, período 2023–2026.</p>
+        </div>
+        <a href="#modal-cambio-directiva" class="btn btn-ghost btn-sm">📝 Solicitar Cambio</a>
+      </div>
+
+      <div class="directiva-grid">
+        <div class="directiva-card">
+          <div class="directiva-avatar">JP</div>
+          <div class="directiva-cargo">Presidente</div>
+          <div class="directiva-name">Juan Pérez Soto</div>
+          <div class="directiva-contact">
+            <div>📞 +56 9 8765 4321</div>
+            <div>✉️ jperez@gmail.com</div>
+          </div>
+        </div>
+        <div class="directiva-card">
+          <div class="directiva-avatar" style="background:linear-gradient(135deg,#0BBFB0,#3B7BF8);">RM</div>
+          <div class="directiva-cargo">Secretaria</div>
+          <div class="directiva-name">Rosa Muñoz Llanca</div>
+          <div class="directiva-contact">
+            <div>📞 +56 9 7654 3210</div>
+            <div>✉️ rmunoz@gmail.com</div>
+          </div>
+        </div>
+        <div class="directiva-card">
+          <div class="directiva-avatar" style="background:linear-gradient(135deg,#F59E0B,#EF4444);">CJ</div>
+          <div class="directiva-cargo">Tesorero</div>
+          <div class="directiva-name">Carlos Jara Paine</div>
+          <div class="directiva-contact">
+            <div>📞 +56 9 6543 2109</div>
+            <div>✉️ cjara@gmail.com</div>
+          </div>
+        </div>
+        <div class="directiva-card">
+          <div class="directiva-avatar" style="background:linear-gradient(135deg,#7C3AED,#3B7BF8);">LA</div>
+          <div class="directiva-cargo">Vocal 1</div>
+          <div class="directiva-name">Lucía Antileo Huen.</div>
+          <div class="directiva-contact">
+            <div>📞 +56 9 5432 1098</div>
+            <div>✉️ lantileo@gmail.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ================================================================
+     MODALES INTERACTIVOS DE GESTIÓN JJVV
+================================================================ -->
+
+<!-- 1. MODAL VISOR INTERACTIVO DE DOCUMENTOS DE RESPALDO -->
+<div class="modal-overlay" id="modal-visor-adjuntos-jjvv">
+  <div class="modal-box" style="max-width:860px; width:95%; max-height:92vh; display:flex; flex-direction:column; padding:22px;">
+    <!-- Header -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:10px; background:rgba(0,212,232,0.15); border:1px solid rgba(0,212,232,0.3); display:flex; align-items:center; justify-content:center; font-size:20px;">
+          📁
+        </div>
+        <div>
+          <h3 style="font-family:var(--font-brand); font-size:17px; font-weight:800; margin:0;" id="visor-doc-titulo">Expediente de Respaldo</h3>
+          <div style="font-size:12px; color:var(--text-muted);" id="visor-doc-subtitulo">Solicitante: —</div>
+        </div>
+      </div>
+      <button onclick="cerrarVisorAdjuntos()" class="btn btn-ghost btn-sm" style="font-size:18px; padding:4px 10px;">✕</button>
+    </div>
+
+    <!-- Document Tabs -->
+    <div style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;" id="visor-doc-tabs">
+      <!-- Tabs dinámicas -->
+    </div>
+
+    <!-- Document Canvas Preview -->
+    <div style="flex:1; overflow-y:auto; background:#0B132B; border:1px solid rgba(0,212,232,0.3); border-radius:12px; padding:20px; position:relative; min-height:360px;" id="visor-doc-canvas">
+      <!-- Canvas dinámico con simulación visual del documento -->
+    </div>
+
+    <!-- Footer Controls -->
+    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:14px; margin-top:14px; flex-wrap:wrap; gap:10px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="badge" style="background:rgba(16,185,129,0.15); color:var(--success); font-size:11px; font-weight:700;">✓ Documento Acreditado</span>
+        <button class="btn btn-ghost btn-sm" onclick="descargarArchivoDemoVisor()">📥 Descargar Copia</button>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="cerrarVisorAdjuntos()">Cerrar Visor</button>
+        <button class="btn btn-danger btn-sm" onclick="abrirModalRechazoDesdeVisor()">❌ Rechazar con Motivo</button>
+        <button class="btn btn-success btn-sm" onclick="abrirModalAprobarDesdeVisor()">✅ Aprobar Solicitud</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. MODAL APROBAR SOLICITUD -->
+<div class="modal-overlay" id="modal-aprobar-solicitud-jjvv">
+  <div class="modal-box" style="max-width:540px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-lg);">
+      <h3 class="modal-title" style="margin:0;">✅ Aprobar Solicitud de Certificado</h3>
+      <button onclick="cerrarModalAprobarJJVV()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+
+    <input type="hidden" id="aprobar-folio-hidden" />
+
+    <div class="summary-box" style="margin-bottom:var(--sp-lg);">
+      <div class="summary-row"><span class="summary-label">Folio Solicitud</span><span class="summary-value" id="aprob-folio">—</span></div>
+      <div class="summary-row"><span class="summary-label">Vecino Solicitante</span><span class="summary-value" id="aprob-vecino">—</span></div>
+      <div class="summary-row"><span class="summary-label">RUN</span><span class="summary-value" id="aprob-run">—</span></div>
+      <div class="summary-row"><span class="summary-label">Dirección</span><span class="summary-value" id="aprob-dir">—</span></div>
+      <div class="summary-row"><span class="summary-label">Motivo</span><span class="summary-value" id="aprob-motivo">—</span></div>
+    </div>
+
+    <div class="form-group">
+      <label style="display:flex; align-items:flex-start; gap:var(--sp-sm); cursor:pointer; font-size:0.9rem;">
+        <input type="checkbox" id="aprob-check-conforme" checked style="margin-top:3px; accent-color:var(--accent-cyan); width:18px; height:18px;" />
+        <span>Confirmo que el vecino <strong>reside en la dirección indicada</strong> y que los documentos de respaldo son conformes al registro de esta JJVV.</span>
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="aprob-obs">Observaciones de Aprobación <span style="color:var(--text-muted); font-weight:400;">(quedará registrado en auditoría)</span></label>
+      <textarea class="form-control" id="aprob-obs" rows="2">Residencia comprobada conforme a padrón de socios y comprobantes de domicilio vigentes.</textarea>
+    </div>
+
+    <div style="display:flex; gap:var(--sp-sm); justify-content:flex-end; margin-top:var(--sp-lg);">
+      <button class="btn btn-ghost" onclick="cerrarModalAprobarJJVV()">Cancelar</button>
+      <button class="btn btn-success" onclick="confirmarAprobacionJJVV()" id="btn-confirmar-aprob-jjvv">
+        Aprobar y Emitir Certificado ✅
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. MODAL RECHAZAR SOLICITUD CON MOTIVO OBLIGATORIO -->
+<div class="modal-overlay" id="modal-rechazar-solicitud-jjvv">
+  <div class="modal-box" style="max-width:540px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-lg);">
+      <h3 class="modal-title" style="margin:0; color:var(--danger);">❌ Rechazar Solicitud de Certificado</h3>
+      <button onclick="cerrarModalRechazoJJVV()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+
+    <input type="hidden" id="rechazar-folio-hidden" />
+
+    <div class="alert alert-danger" style="margin-bottom:var(--sp-md); font-size:13px;">
+      ⚠️ El motivo de rechazo es obligatorio. El vecino recibirá esta justificación y podrá corregir o reemplazar sus documentos sin tener que reiniciar el trámite.
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Causa principal del rechazo <span class="req">*</span></label>
+      <select class="form-control" id="rechazo-causa-sel" onchange="seleccionarCausaRechazo(this.value)">
+        <option value="">Seleccione motivo...</option>
+        <option value="Boleta de servicios desactualizada (mayor a 60 días desde su emisión).">Boleta de servicios desactualizada (mayor a 60 días)</option>
+        <option value="El comprobante no está a nombre del solicitante ni se adjunta contrato de arriendo o autorización.">Comprobante a nombre de tercero sin documento vinculante</option>
+        <option value="La dirección ingresada se encuentra fuera de la jurisdicción territorial de esta Junta de Vecinos.">Dirección fuera de la jurisdicción de la JJVV</option>
+        <option value="El contrato de arriendo adjunto se encuentra vencido o carece de firma notarial.">Contrato de arriendo vencido o sin firmas</option>
+        <option value="otro">Otro motivo justificado (especificar abajo)...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="rechazo-motivo-txt">Detalle y observaciones para el vecino <span class="req">*</span></label>
+      <textarea class="form-control" id="rechazo-motivo-txt" rows="3" placeholder="Indique claramente qué documento debe adjuntar o corregir el vecino..."></textarea>
+    </div>
+
+    <div style="display:flex; gap:var(--sp-sm); justify-content:flex-end; margin-top:var(--sp-lg);">
+      <button class="btn btn-ghost" onclick="cerrarModalRechazoJJVV()">Cancelar</button>
+      <button class="btn btn-danger" onclick="confirmarRechazoJJVV()" id="btn-confirmar-rechazo-jjvv">
+        Confirmar Rechazo ❌
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. MODAL DETALLE COMPLETO Y TRAZABILIDAD -->
+<div class="modal-overlay" id="modal-detalle-solicitud-jjvv">
+  <div class="modal-box" style="max-width:620px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-lg);">
+      <div>
+        <span class="badge" style="background:rgba(0,212,232,0.15); color:var(--accent-cyan); font-size:11px; font-weight:800;">EXPEDIENTE JJVV</span>
+        <h3 class="modal-title" style="margin:4px 0 0;" id="det-folio-titulo">Detalle de Solicitud</h3>
+      </div>
+      <button onclick="cerrarModalDetalleJJVV()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+
+    <div class="summary-box" style="margin-bottom:var(--sp-lg);" id="det-box-info">
+      <!-- Datos cargados dinámicamente -->
+    </div>
+
+    <div style="font-size:12px; font-weight:700; color:var(--accent-cyan); text-transform:uppercase; margin-bottom:8px;">
+      📜 Historial de Trazabilidad y Auditoría
+    </div>
+    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:var(--r-md); padding:12px; max-height:160px; overflow-y:auto; margin-bottom:var(--sp-lg);" id="det-historial-lista">
+      <!-- Timeline dinámico -->
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center;" id="det-footer-actions">
+      <!-- Acciones según estado -->
+    </div>
+  </div>
+</div>
+
+<!-- 5. MODAL — SOLICITAR CAMBIO DE DIRECTIVA -->
+<div class="modal-overlay" id="modal-cambio-directiva">
+  <div class="modal-box" style="max-width:560px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-lg);">
+      <h3 class="modal-title" style="margin:0;">📝 Solicitar Cambio de Directiva</h3>
+      <button onclick="cerrarModalCambioDirectiva()" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;">&times;</button>
+    </div>
+    <div class="alert alert-warning" style="margin-bottom:var(--sp-lg); font-size:13px;">
+      ⚠️ Esta solicitud será revisada y ejecutada por el Departamento de Organizaciones Comunitarias de la Municipalidad de Padre Las Casas.
+    </div>
+    <form onsubmit="enviarCambioDirectivaJJVV(event)">
+      <div class="form-group">
+        <label class="form-label" for="tipo-cambio">Tipo de cambio *</label>
+        <select class="form-control" id="tipo-cambio" required>
+          <option value="" disabled selected>Seleccione…</option>
+          <option value="eleccion">Cambio completo de directiva (nueva elección)</option>
+          <option value="presidente">Reemplazo de Presidente/a</option>
+          <option value="secretaria">Reemplazo de Secretario/a</option>
+          <option value="tesorero">Reemplazo de Tesorero/a</option>
+          <option value="renuncia">Renuncia voluntaria de miembro</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="nuevo-presidente">Nuevo Representante</label>
+          <input type="text" class="form-control" id="nuevo-presidente" placeholder="Nombre completo" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="nuevo-run">RUN</label>
+          <input type="text" class="form-control" id="nuevo-run" placeholder="12.345.678-9" required />
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Acta de Asamblea de Elección *</label>
+        <div class="upload-area" onclick="document.getElementById('file-acta').click()" style="cursor:pointer; padding:16px; border:2px dashed var(--border); border-radius:12px; text-align:center;">
+          <input type="file" id="file-acta" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="showFileNamesJJVV(this,'acta-name')" />
+          <div class="upload-icon" style="font-size:26px; margin-bottom:4px;">📋</div>
+          <div class="upload-label" style="font-size:13px;"><strong>Seleccionar Acta de Asamblea</strong><br/><small style="color:var(--text-muted);">PDF, JPG o PNG — Máx. 5 MB</small></div>
+        </div>
+        <div id="acta-name" style="margin-top:var(--sp-sm); font-size:0.82rem; color:var(--accent-cyan); font-weight:600;"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="obs-directiva">Observaciones adicionales</label>
+        <textarea class="form-control" id="obs-directiva" rows="2" placeholder="Detalles de la asamblea comunitaria…"></textarea>
+      </div>
+      <div style="display:flex; gap:var(--sp-sm); justify-content:flex-end; margin-top:var(--sp-lg);">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModalCambioDirectiva()">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-enviar-cambio-dir">
+          Enviar Solicitud al Municipio 📤
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 6. MODAL CONTACTO DE MIEMBRO DIRECTIVA -->
+<div class="modal-overlay" id="modal-directiva-info">
+  <div class="modal-box" style="max-width:440px; text-align:center;">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--gradient-main); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:24px; color:#fff; margin:0 auto var(--sp-md);" id="dir-info-avatar">
+      JP
+    </div>
+    <div style="font-size:12px; text-transform:uppercase; font-weight:800; color:var(--accent-cyan); letter-spacing:0.06em;" id="dir-info-cargo">PRESIDENTE</div>
+    <h3 style="font-family:var(--font-brand); font-size:20px; font-weight:800; margin:4px 0 12px;" id="dir-info-nombre">Juan Pérez Soto</h3>
+
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--r-lg); padding:16px; text-align:left; font-size:13.5px; line-height:1.8; margin-bottom:var(--sp-xl);">
+      <div>📞 <strong>Teléfono:</strong> <span id="dir-info-tel">+56 9 8765 4321</span></div>
+      <div>✉️ <strong>Correo:</strong> <span id="dir-info-email">jperez@gmail.com</span></div>
+      <div>🏛️ <strong>Junta de Vecinos:</strong> Villa Los Pinos (N° 14)</div>
+      <div>📅 <strong>Período vigente:</strong> 2023 – 2026 (Reconocimiento Municipal)</div>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button class="btn btn-ghost" onclick="cerrarModal('modal-directiva-info')">Cerrar</button>
+      <button class="btn btn-primary" onclick="abrirModalCambioDirectiva(); cerrarModal('modal-directiva-info');">📝 Solicitar Cambio</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+  // ---- Estado Global JJVV ----
+  let currentFilter = 'todo';
+  let currentVisorFolio = null;
+  let currentVisorFileIdx = 0;
+  let currentActionFolio = null;
+
+  // ---- Hamburger & Responsive Drawer ----
+  const hamburger = document.getElementById('hamburger');
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebar-overlay');
+  if (hamburger) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('show');
+    });
+  }
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('show');
+    });
+  }
+
+  // ---- Modales Generales ----
+  function abrirModal(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add('open');
+      el.style.display = 'flex';
+    }
+  }
+
+  function cerrarModal(id) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.remove('open');
+      el.style.display = 'none';
+    }
+  }
+
+  // ---- Navegación Activa y Scroll ----
+  function irABandeja(estado = 'todo') {
+    const el = document.getElementById('bandeja');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+
+    currentFilter = estado;
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.classList.remove('active');
+      const txt = btn.textContent.toLowerCase();
+      if (estado === 'todo' && txt.includes('todas')) btn.classList.add('active');
+      else if (estado === 'pendiente' && txt.includes('pendientes')) btn.classList.add('active');
+      else if (estado === 'aprobada' && txt.includes('aprobadas')) btn.classList.add('active');
+      else if (estado === 'rechazada' && txt.includes('rechazadas')) btn.classList.add('active');
+    });
+
+    filterTable();
+
+    // Actualizar sidebar link activo
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    if (estado === 'pendiente') document.getElementById('slink-pendientes')?.classList.add('active');
+    else if (estado === 'aprobada') document.getElementById('slink-aprobadas')?.classList.add('active');
+    else if (estado === 'rechazada') document.getElementById('slink-rechazadas')?.classList.add('active');
+    else document.getElementById('slink-panel')?.classList.add('active');
+  }
+
+  function irAHistorial() {
+    const el = document.getElementById('historial');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    renderHistorialJJVV();
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    document.getElementById('slink-historial')?.classList.add('active');
+  }
+
+  function irADirectiva() {
+    const el = document.getElementById('directiva');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function abrirModalCambioDirectiva() {
+    abrirModal('modal-cambio-directiva');
+  }
+
+  function cerrarModalCambioDirectiva() {
+    cerrarModal('modal-cambio-directiva');
+  }
+
+  // ---- Filtros de Bandeja ----
+  function setFilter(estado, btn) {
+    currentFilter = estado;
+    if (btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+    filterTable();
+  }
+
+  function filterTable() {
+    const q = (document.getElementById('search-bandeja')?.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('#bandeja-tbody tr');
+    rows.forEach(row => {
+      const estadoRow = row.dataset.estado || 'pendiente';
+      const estadoMatch = (currentFilter === 'todo') || (estadoRow === currentFilter);
+      const textMatch = (q === '') || row.textContent.toLowerCase().includes(q);
+      row.style.display = (estadoMatch && textMatch) ? '' : 'none';
+    });
+  }
+
+  // ---- Renderizado Dinámico de Bandeja JJVV ----
+  function renderJJVVBandeja() {
+    const tbody = document.getElementById('bandeja-tbody');
+    if (!tbody) return;
+
+    const user = VeciAuth.getCurrentUser();
+    const jjvvId = (user && user.jjvvId) ? user.jjvvId : 'jjvv-01';
+
+    // Obtener todas las solicitudes pertenecientes a esta JJVV o derivadas
+    const allReqs = VeciDB.getRequests();
+    const reqs = allReqs.filter(r => r.jjvvId === jjvvId || r.jjvvId === 'no-se' || !r.jjvvId);
+
+    // Actualizar números de las Stat Cards superiores
+    actualizarStatsJJVV(reqs);
+
+    if (reqs.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:36px; color:var(--text-muted);"><div style="font-size:28px; margin-bottom:8px;">📋</div>No hay solicitudes registradas en esta Junta de Vecinos.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = reqs.map((r, i) => {
+      let estadoBadge = '';
+      let estadoData = 'pendiente';
+
+      if (r.estado === 'pendiente' || r.estado === 'en_revision') {
+        estadoBadge = '<span class="badge-process" style="padding:4px 10px; border-radius:12px; font-size:11px; font-weight:700;">⏳ En Revisión</span>';
+        estadoData = 'pendiente';
+      } else if (r.estado === 'aprobado') {
+        estadoBadge = '<span class="badge-resolved" style="padding:4px 10px; border-radius:12px; font-size:11px; font-weight:700;">✓ Aprobado</span>';
+        estadoData = 'aprobada';
+      } else if (r.estado === 'rechazado') {
+        estadoBadge = '<span class="badge-rejected" style="padding:4px 10px; border-radius:12px; font-size:11px; font-weight:700;">✗ Rechazado</span>';
+        estadoData = 'rechazada';
+      }
+
+      let actions = '';
+      if (r.estado === 'pendiente' || r.estado === 'en_revision') {
+        actions = `
+          <button class="btn btn-success btn-sm" onclick="abrirModalAprobarJJVV('${r.folio}')" style="font-size:12px; padding:6px 10px;" title="Aprobar y Emitir Certificado">✅ Aprobar</button>
+          <button class="btn btn-danger btn-sm" onclick="abrirModalRechazoJJVV('${r.folio}')" style="font-size:12px; padding:6px 10px;" title="Rechazar con motivo">❌ Rechazar</button>
+          <button class="btn btn-ghost btn-sm" onclick="verDetalleSolicitudJJVV('${r.folio}')" style="font-size:12px; padding:6px 8px;" title="Ver Detalle">👁️</button>
+        `;
+      } else if (r.estado === 'aprobado') {
+        actions = `
+          <button class="btn btn-primary btn-sm" onclick="descargarPDFPruebaJJVV('${r.folio}')" style="font-size:12px; padding:6px 10px;" title="Descargar Certificado Oficial en PDF">📥 PDF Prueba</button>
+          <button class="btn btn-ghost btn-sm" onclick="verDetalleSolicitudJJVV('${r.folio}')" style="font-size:12px; padding:6px 8px;" title="Ver Detalle">👁️</button>
+        `;
+      } else {
+        actions = `
+          <button class="btn btn-ghost btn-sm" onclick="verDetalleSolicitudJJVV('${r.folio}')" style="font-size:12px; padding:6px 10px; color:var(--danger); border-color:rgba(239,68,68,0.3);" title="Ver Motivo de Rechazo">🔍 Ver Motivo</button>
+        `;
+      }
+
+      const adjuntosCount = r.adjuntos ? r.adjuntos.length : 2;
+
+      return `
+        <tr data-estado="${estadoData}">
+          <td>${i + 1}</td>
+          <td>
+            <a href="javascript:void(0)" onclick="verDetalleSolicitudJJVV('${r.folio}')" class="ticket-id" style="text-decoration:none; font-family:monospace; font-weight:800; color:var(--accent-cyan);">
+              ${r.folio}
+            </a>
+          </td>
+          <td>
+            <div style="font-weight:700; color:#fff; font-size:13.5px;">${r.vecinoNombre}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${r.vecinoEmail || 'vecino@padrelascasas.cl'}</div>
+          </td>
+          <td style="font-family:monospace; font-size:12px;">${r.vecinoRun}</td>
+          <td style="font-size:12px; max-width:200px;">${r.direccion || 'Padre Las Casas'}</td>
+          <td style="font-size:12.5px; font-weight:500;">${r.motivo}</td>
+          <td style="font-size:12px; color:var(--text-secondary);">${r.fechaSolicitud || '2024-11-15'}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="abrirVisorAdjuntosJJVV('${r.folio}')" style="font-size:12px; padding:4px 8px; border-color:rgba(0,212,232,0.35); color:var(--accent-cyan);" title="Inspeccionar archivos adjuntos">
+              📎 ${adjuntosCount} doc(s)
+            </button>
+          </td>
+          <td>${estadoBadge}</td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+              ${actions}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    filterTable();
+  }
+
+  function actualizarStatsJJVV(reqs) {
+    const pendientes = reqs.filter(r => r.estado === 'pendiente' || r.estado === 'en_revision').length;
+    const aprobadas = reqs.filter(r => r.estado === 'aprobado').length;
+    const rechazadas = reqs.filter(r => r.estado === 'rechazado').length;
+
+    const elPend = document.getElementById('stat-val-pendientes');
+    if (elPend) elPend.textContent = pendientes;
+    const elAprob = document.getElementById('stat-val-aprobadas');
+    if (elAprob) elAprob.textContent = aprobadas;
+    const elRech = document.getElementById('stat-val-rechazadas');
+    if (elRech) elRech.textContent = rechazadas;
+    const elTotal = document.getElementById('stat-val-total');
+    if (elTotal) elTotal.textContent = reqs.length;
+
+    const slinkBadge = document.getElementById('slink-badge-pendientes');
+    if (slinkBadge) slinkBadge.textContent = pendientes;
+  }
+
+  // ---- VISOR INTERACTIVO DE DOCUMENTOS DE RESPALDO ----
+  function abrirVisorAdjuntosJJVV(folio, fileIdx = 0) {
+    const r = VeciDB.getRequestByFolio(folio);
+    if (!r) return;
+
+    currentVisorFolio = folio;
+    currentVisorFileIdx = fileIdx;
+
+    document.getElementById('visor-doc-titulo').textContent = `Expediente: ${r.folio}`;
+    document.getElementById('visor-doc-subtitulo').textContent = `Vecino: ${r.vecinoNombre} · RUN: ${r.vecinoRun} · Domicilio: ${r.direccion}`;
+
+    // Archivos por defecto si no vienen
+    const docs = r.adjuntos && r.adjuntos.length ? r.adjuntos : [
+      { nombre: 'boleta_cge_luz_oct2024.pdf', tipo: 'Boleta de Electricidad', size: '1.2 MB' },
+      { nombre: 'contrato_arriendo_vigente.pdf', tipo: 'Contrato de Arriendo Notarial', size: '2.4 MB' }
+    ];
+
+    // Renderizar tabs
+    const tabsContainer = document.getElementById('visor-doc-tabs');
+    tabsContainer.innerHTML = docs.map((doc, idx) => `
+      <button class="btn btn-sm ${idx === fileIdx ? 'btn-primary' : 'btn-ghost'}" onclick="cambiarArchivoVisor(${idx})" style="font-size:12px; white-space:nowrap;">
+        📄 ${doc.nombre}
+      </button>
+    `).join('');
+
+    // Renderizar Canvas Simulado del Documento
+    const docActual = docs[fileIdx] || docs[0];
+    const canvas = document.getElementById('visor-doc-canvas');
+
+    const esBoletaLuz = docActual.nombre.includes('luz') || docActual.nombre.includes('cge');
+    const esContrato = docActual.nombre.includes('arriendo') || docActual.nombre.includes('contrato');
+    const esAgua = docActual.nombre.includes('agua');
+
+    if (esBoletaLuz) {
+      canvas.innerHTML = `
+        <div style="background:#fff; color:#1e293b; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:Arial, sans-serif; position:relative;">
+          <div style="position:absolute; right:20px; top:20px; border:2px dashed #16a34a; color:#16a34a; padding:6px 12px; font-size:11px; font-weight:800; border-radius:6px; transform:rotate(-5deg);">
+            ✓ ACREDITACIÓN CONFORME
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0284c7; padding-bottom:12px; margin-bottom:16px;">
+            <div>
+              <div style="font-size:20px; font-weight:900; color:#0284c7;">CGE DISTRIBUCIÓN</div>
+              <div style="font-size:10px; color:#64748b;">Compañía General de Electricidad S.A. · Padre Las Casas</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:11px; font-weight:700;">BOLETA ELECTRÓNICA N° 0849201</div>
+              <div style="font-size:10px; color:#64748b;">Fecha Emisión: 15/10/2024 · Vence: 05/11/2024</div>
+            </div>
+          </div>
+
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:12px; margin-bottom:16px; font-size:12.5px;">
+            <div><strong>Titular del Suministro:</strong> ${r.vecinoNombre}</div>
+            <div><strong>RUT Cliente:</strong> ${r.vecinoRun}</div>
+            <div><strong>Dirección de Suministro:</strong> ${r.direccion}</div>
+            <div><strong>Comuna / Sector:</strong> Padre Las Casas · Villa Los Pinos</div>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse; font-size:12px; margin-bottom:16px;">
+            <thead>
+              <tr style="background:#0284c7; color:#fff;">
+                <th style="padding:6px; text-align:left;">Detalle del Consumo</th>
+                <th style="padding:6px; text-align:center;">Lectura Anterior</th>
+                <th style="padding:6px; text-align:center;">Lectura Actual</th>
+                <th style="padding:6px; text-align:right;">Total a Pagar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid #e2e8f0;">
+                <td style="padding:8px 6px;">Consumo Energía Eléctrica Residencial (210 kWh)</td>
+                <td style="padding:8px 6px; text-align:center;">4.810</td>
+                <td style="padding:8px 6px; text-align:center;">5.020</td>
+                <td style="padding:8px 6px; text-align:right; font-weight:700;">$ 38.450</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0; padding-top:10px; font-size:10px; color:#64748b;">
+            <span>Código de verificación digital: CGE-PLC-9948271</span>
+            <span>Documento presentado para acreditación de residencia en VeciAyuda</span>
+          </div>
+        </div>
+      `;
+    } else if (esContrato) {
+      canvas.innerHTML = `
+        <div style="background:#fff; color:#1e293b; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:Times New Roman, serif; position:relative;">
+          <div style="position:absolute; right:20px; top:20px; border:2px solid #7c3aed; color:#7c3aed; padding:6px 12px; font-size:10px; font-weight:800; border-radius:4px; text-align:center;">
+            TIMBRE NOTARIAL PLC<br>PROTOCOLO N° 2024-883
+          </div>
+          <div style="text-align:center; margin-bottom:18px;">
+            <div style="font-size:16px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px;">CONTRATO DE ARRENDAMIENTO DE INMUEBLE</div>
+            <div style="font-size:11px; color:#64748b;">NOTARÍA Y CONSERVADOR DE PADRE LAS CASAS</div>
+          </div>
+
+          <p style="font-size:12px; line-height:1.7; text-align:justify; margin-bottom:12px;">
+            En la ciudad de Padre Las Casas, República de Chile, comparecen por una parte como <strong>ARRENDADOR</strong> don Manuel Antonio Soto Parra, RUN 11.456.789-0, y por la otra parte como <strong>ARRENDATARIO</strong> doña <strong>${r.vecinoNombre}</strong>, RUN <strong>${r.vecinoRun}</strong>.
+          </p>
+
+          <p style="font-size:12px; line-height:1.7; text-align:justify; margin-bottom:12px;">
+            <strong>PRIMERO:</strong> El arrendador da en arrendamiento a la arrendataria el bien raíz ubicado en <strong>${r.direccion}</strong>, comuna de Padre Las Casas. La arrendataria declara destinar el inmueble exclusivamente para habitación familiar propia y continua.
+          </p>
+
+          <p style="font-size:12px; line-height:1.7; text-align:justify; margin-bottom:16px;">
+            <strong>SEGUNDO:</strong> El presente contrato rige desde el 01 de Enero de 2023 por períodos renovables de un año, encontrándose vigente a la fecha de emisión del presente certificado.
+          </p>
+
+          <div style="display:flex; justify-content:space-around; margin-top:24px; padding-top:16px; border-top:1px solid #cbd5e1; font-size:11px; text-align:center;">
+            <div>____________________________<br><strong>Manuel Soto Parra</strong><br>Arrendador</div>
+            <div>____________________________<br><strong>${r.vecinoNombre}</strong><br>Arrendataria Titular</div>
+          </div>
+        </div>
+      `;
+    } else {
+      canvas.innerHTML = `
+        <div style="background:#fff; color:#1e293b; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:Arial, sans-serif;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #059669; padding-bottom:12px; margin-bottom:16px;">
+            <div>
+              <div style="font-size:18px; font-weight:900; color:#059669;">AGUAS ARAUCANÍA S.A.</div>
+              <div style="font-size:10px; color:#64748b;">Comprobante Oficial de Servicios Sanitarios · Padre Las Casas</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="background:#d1fae5; color:#065f46; font-size:10px; font-weight:800; padding:4px 8px; border-radius:4px;">PAGADO / AL DÍA</span>
+            </div>
+          </div>
+          <div style="font-size:12.5px; line-height:1.6;">
+            <div><strong>Cliente / Titular:</strong> ${r.vecinoNombre} (RUN ${r.vecinoRun})</div>
+            <div><strong>Inmueble:</strong> ${r.direccion}</div>
+            <div><strong>Comuna:</strong> Padre Las Casas · Región de La Araucanía</div>
+            <div><strong>Estado:</strong> Servicio Activo sin deuda exigible</div>
+          </div>
+        </div>
+      `;
+    }
+
+    abrirModal('modal-visor-adjuntos-jjvv');
+  }
+
+  function cambiarArchivoVisor(idx) {
+    if (currentVisorFolio) {
+      abrirVisorAdjuntosJJVV(currentVisorFolio, idx);
+    }
+  }
+
+  function cerrarVisorAdjuntos() {
+    cerrarModal('modal-visor-adjuntos-jjvv');
+  }
+
+  function descargarArchivoDemoVisor() {
+    VeciUI.toast('📥 Descargando archivo de respaldo oficial verificado por la plataforma.', 'info');
+  }
+
+  function abrirModalAprobarDesdeVisor() {
+    cerrarVisorAdjuntos();
+    if (currentVisorFolio) abrirModalAprobarJJVV(currentVisorFolio);
+  }
+
+  function abrirModalRechazoDesdeVisor() {
+    cerrarVisorAdjuntos();
+    if (currentVisorFolio) abrirModalRechazoJJVV(currentVisorFolio);
+  }
+
+  // ---- MODAL APROBAR SOLICITUD ----
+  function abrirModalAprobarJJVV(folio) {
+    const r = VeciDB.getRequestByFolio(folio);
+    if (!r) return;
+
+    currentActionFolio = folio;
+    document.getElementById('aprobar-folio-hidden').value = folio;
+    document.getElementById('aprob-folio').textContent = r.folio;
+    document.getElementById('aprob-vecino').textContent = r.vecinoNombre;
+    document.getElementById('aprob-run').textContent = r.vecinoRun;
+    document.getElementById('aprob-dir').textContent = r.direccion;
+    document.getElementById('aprob-motivo').textContent = r.motivo;
+    document.getElementById('aprob-check-conforme').checked = true;
+
+    abrirModal('modal-aprobar-solicitud-jjvv');
+  }
+
+  function cerrarModalAprobarJJVV() {
+    cerrarModal('modal-aprobar-solicitud-jjvv');
+  }
+
+  function confirmarAprobacionJJVV() {
+    const folio = document.getElementById('aprobar-folio-hidden').value || currentActionFolio;
+    const check = document.getElementById('aprob-check-conforme').checked;
+    const obs = document.getElementById('aprob-obs').value.trim();
+
+    if (!check) {
+      VeciUI.toast('Debe confirmar que el vecino reside en el domicilio indicado antes de emitir el certificado.', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('btn-confirmar-aprob-jjvv');
+    btn.textContent = '⏳ Emitiendo Certificado...';
+    btn.disabled = true;
+
+    try {
+      const user = VeciAuth.getCurrentUser();
+      const res = VeciDB.approveRequest(folio, user, obs || 'Residencia acreditada conforme a padrón');
+
+      cerrarModalAprobarJJVV();
+      btn.textContent = 'Aprobar y Emitir Certificado ✅';
+      btn.disabled = false;
+
+      renderJJVVBandeja();
+      renderHistorialJJVV();
+
+      // Abrir de inmediato el visor del PDF de prueba con marca de agua
+      if (confirm(`✅ ¡Solicitud Aprobada!
+
+Se ha emitido el Certificado Oficial Folio: ${res.cert.folio}
+
+¿Desea previsualizar y descargar el Certificado PDF ahora?`)) {
+        VeciPDF.openPrintView(res.cert.folio);
+      }
+    } catch (err) {
+      VeciUI.toast('Error: ' + err.message, 'danger');
+      btn.textContent = 'Aprobar y Emitir Certificado ✅';
+      btn.disabled = false;
+    }
+  }
+
+  // ---- MODAL RECHAZAR SOLICITUD ----
+  function abrirModalRechazoJJVV(folio) {
+    const r = VeciDB.getRequestByFolio(folio);
+    if (!r) return;
+
+    currentActionFolio = folio;
+    document.getElementById('rechazar-folio-hidden').value = folio;
+    document.getElementById('rechazo-causa-sel').value = '';
+    document.getElementById('rechazo-motivo-txt').value = '';
+
+    abrirModal('modal-rechazar-solicitud-jjvv');
+  }
+
+  function seleccionarCausaRechazo(val) {
+    const txt = document.getElementById('rechazo-motivo-txt');
+    if (val && val !== 'otro') {
+      txt.value = val;
+    } else if (val === 'otro') {
+      txt.value = '';
+      txt.focus();
+    }
+  }
+
+  function cerrarModalRechazoJJVV() {
+    cerrarModal('modal-rechazar-solicitud-jjvv');
+  }
+
+  function confirmarRechazoJJVV() {
+    const folio = document.getElementById('rechazar-folio-hidden').value || currentActionFolio;
+    const motivo = document.getElementById('rechazo-motivo-txt').value.trim();
+
+    if (!motivo) {
+      VeciUI.toast('Por favor ingrese el motivo obligatorio de rechazo para la notificación al vecino.', 'warning');
+      return;
+    }
+
+    const btn = document.getElementById('btn-confirmar-rechazo-jjvv');
+    btn.textContent = '⏳ Guardando rechazo...';
+    btn.disabled = true;
+
+    try {
+      const user = VeciAuth.getCurrentUser();
+      VeciDB.rejectRequest(folio, user, motivo);
+
+      cerrarModalRechazoJJVV();
+      btn.textContent = 'Confirmar Rechazo ❌';
+      btn.disabled = false;
+
+      renderJJVVBandeja();
+      renderHistorialJJVV();
+
+      VeciUI.toast(`❌ La solicitud ${folio} ha sido rechazada con motivo registrado para corrección del vecino.`, 'danger');
+    } catch (err) {
+      VeciUI.toast('Error: ' + err.message, 'danger');
+      btn.textContent = 'Confirmar Rechazo ❌';
+      btn.disabled = false;
+    }
+  }
+
+  // ---- MODAL DETALLE DE SOLICITUD ----
+  function verDetalleSolicitudJJVV(folio) {
+    const r = VeciDB.getRequestByFolio(folio);
+    if (!r) return;
+
+    document.getElementById('det-folio-titulo').textContent = `Expediente: ${r.folio}`;
+
+    let badgeEstado = '';
+    if (r.estado === 'aprobado') badgeEstado = '<span class="badge-resolved">✓ Aprobado</span>';
+    else if (r.estado === 'rechazado') badgeEstado = '<span class="badge-rejected">✗ Rechazado</span>';
+    else badgeEstado = '<span class="badge-process">⏳ En Revisión</span>';
+
+    document.getElementById('det-box-info').innerHTML = `
+      <div class="summary-row"><span class="summary-label">Vecino:</span><span class="summary-value">${r.vecinoNombre}</span></div>
+      <div class="summary-row"><span class="summary-label">RUN:</span><span class="summary-value" style="font-family:monospace;">${r.vecinoRun}</span></div>
+      <div class="summary-row"><span class="summary-label">Dirección:</span><span class="summary-value">${r.direccion}</span></div>
+      <div class="summary-row"><span class="summary-label">Motivo Declarado:</span><span class="summary-value">${r.motivo}</span></div>
+      <div class="summary-row"><span class="summary-label">Estado Actual:</span><span class="summary-value">${badgeEstado}</span></div>
+      ${r.folioCertificado ? `<div class="summary-row"><span class="summary-label">Folio Certificado:</span><span class="summary-value" style="color:var(--accent-cyan); font-weight:700;">${r.folioCertificado}</span></div>` : ''}
+      ${r.motivoRechazo ? `<div class="summary-row"><span class="summary-label" style="color:var(--danger);">Motivo Rechazo:</span><span class="summary-value" style="color:var(--danger);">${r.motivoRechazo}</span></div>` : ''}
+    `;
+
+    const historial = r.historial || [
+      { fecha: r.fechaSolicitud || '2024-11-15', accion: 'Solicitud ingresada por el vecino' }
+    ];
+
+    document.getElementById('det-historial-lista').innerHTML = historial.map(h => `
+      <div style="font-size:12px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; gap:8px;">
+        <span style="color:var(--accent-cyan); font-family:monospace;">• ${h.fecha}</span>
+        <span>${h.accion} ${h.usuario ? `(${h.usuario})` : ''}</span>
+      </div>
+    `).join('');
+
+    const footer = document.getElementById('det-footer-actions');
+    if (r.estado === 'aprobado') {
+      footer.innerHTML = `
+        <button class="btn btn-ghost btn-sm" onclick="cerrarModalDetalleJJVV()">Cerrar</button>
+        <button class="btn btn-primary btn-sm" onclick="descargarPDFPruebaJJVV('${r.folio}'); cerrarModalDetalleJJVV();">📥 Descargar Certificado PDF</button>
+      `;
+    } else if (r.estado === 'rechazado') {
+      footer.innerHTML = `
+        <button class="btn btn-ghost btn-sm" onclick="cerrarModalDetalleJJVV()">Cerrar</button>
+        <span style="font-size:12px; color:var(--text-muted);">Solicitud en espera de corrección</span>
+      `;
+    } else {
+      footer.innerHTML = `
+        <button class="btn btn-ghost btn-sm" onclick="cerrarModalDetalleJJVV()">Cerrar</button>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-danger btn-sm" onclick="cerrarModalDetalleJJVV(); abrirModalRechazoJJVV('${r.folio}')">❌ Rechazar</button>
+          <button class="btn btn-success btn-sm" onclick="cerrarModalDetalleJJVV(); abrirModalAprobarJJVV('${r.folio}')">✅ Aprobar</button>
+        </div>
+      `;
+    }
+
+    abrirModal('modal-detalle-solicitud-jjvv');
+  }
+
+  function cerrarModalDetalleJJVV() {
+    cerrarModal('modal-detalle-solicitud-jjvv');
+  }
+
+  function descargarPDFPruebaJJVV(folio) {
+    const cert = VeciDB.getCertificate(folio);
+    if (cert) {
+      VeciPDF.openPrintView(cert.folio);
+    } else {
+      const r = VeciDB.getRequestByFolio(folio);
+      if (r && r.folioCertificado) {
+        VeciPDF.openPrintView(r.folioCertificado);
+      } else {
+        VeciPDF.openPrintView('PLC-CR-2024-00065');
+      }
+    }
+  }
+
+  // ---- CAMBIO DE DIRECTIVA ----
+  function enviarCambioDirectivaJJVV(e) {
+    e.preventDefault();
+    const tipo = document.getElementById('tipo-cambio').value;
+    const nombre = document.getElementById('nuevo-presidente').value.trim();
+    const run = document.getElementById('nuevo-run').value.trim();
+    const obs = document.getElementById('obs-directiva').value.trim();
+
+    const btn = document.getElementById('btn-enviar-cambio-dir');
+    btn.textContent = '⏳ Registrando en municipio...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      cerrarModalCambioDirectiva();
+      btn.textContent = 'Enviar Solicitud al Municipio 📤';
+      btn.disabled = false;
+      VeciUI.toast('✅ Solicitud de cambio de directiva ingresada con éxito. Enviada al Administrador Municipal.', 'success');
+    }, 600);
+  }
+
+  // ---- DIRECTIVA INFO MODAL ----
+  function abrirModalDirectivaInfo(cargo, nombre, tel, email, avatar) {
+    document.getElementById('dir-info-cargo').textContent = cargo.toUpperCase();
+    document.getElementById('dir-info-nombre').textContent = nombre;
+    document.getElementById('dir-info-tel').textContent = tel;
+    document.getElementById('dir-info-email').textContent = email;
+    document.getElementById('dir-info-avatar').textContent = avatar;
+    abrirModal('modal-directiva-info');
+  }
+
+  // ---- HISTORIAL DINÁMICO JJVV ----
+  function renderHistorialJJVV() {
+    const tbody = document.getElementById('historial-tbody');
+    if (!tbody) return;
+
+    const user = VeciAuth.getCurrentUser();
+    const jjvvId = (user && user.jjvvId) ? user.jjvvId : 'jjvv-01';
+
+    const reqs = VeciDB.getRequests().filter(r => (r.jjvvId === jjvvId || !r.jjvvId) && (r.estado === 'aprobado' || r.estado === 'rechazado'));
+
+    if (reqs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">No hay trámites finalizados en el historial aún.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = reqs.map(r => {
+      const esAprob = r.estado === 'aprobado';
+      return `
+        <tr data-estado="${esAprob ? 'aprobada' : 'rechazada'}">
+          <td><strong style="color:var(--accent-cyan); font-family:monospace;">${r.folio}</strong></td>
+          <td style="font-weight:700;">${r.vecinoNombre}</td>
+          <td style="font-family:monospace; font-size:12px;">${r.vecinoRun}</td>
+          <td>${r.motivo}</td>
+          <td style="font-size:12px;">${r.fechaSolicitud || '2024-10-01'}</td>
+          <td style="font-size:12px;">${r.fechaResolucion || '2024-10-03'}</td>
+          <td>${esAprob ? '<span class="badge-resolved">Aprobado</span>' : '<span class="badge-rejected">Rechazado</span>'}</td>
+          <td style="font-size:12px; color:var(--text-secondary);">${esAprob ? (r.observacionesAprobacion || 'Verificado conforme a padrón.') : (r.motivoRechazo || 'Rechazado por documentos insuficientes.')}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function applyHistorialFilter() {
+    const estado = document.getElementById('hist-estado-filter').value;
+    const rows = document.querySelectorAll('#historial-tbody tr');
+    rows.forEach(r => {
+      const match = (estado === 'todo') || (r.dataset.estado === estado);
+      r.style.display = match ? '' : 'none';
+    });
+  }
+
+  function exportCSV() {
+    const rows = Array.from(document.querySelectorAll('#historial-tbody tr'))
+      .map(r => Array.from(r.cells).map(c => '"' + c.textContent.trim().replace(/"/g, '""') + '"').join(','));
+    const csvContent = "data:text/csv;charset=utf-8,﻿" + ['Folio,Vecino,RUN,Motivo,F.Solicitud,F.Resolución,Estado,Observaciones', ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "historial_solicitudes_jjvv_padrelascasas.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function showFileNamesJJVV(input, targetId) {
+    const target = document.getElementById(targetId);
+    if (!input.files || input.files.length === 0) { target.textContent = ''; return; }
+    target.textContent = Array.from(input.files).map(f => '📎 ' + f.name).join('  ·  ');
+  }
+
+  // ---- Carga Inicial ----
+  window.addEventListener('DOMContentLoaded', () => {
+    renderJJVVBandeja();
+    renderHistorialJJVV();
+
+    // Conectar tarjetas de directiva para que abran modal de contacto al hacer clic
+    document.querySelectorAll('.directiva-card').forEach((card, idx) => {
+      card.style.cursor = 'pointer';
+      card.title = 'Clic para ver detalles y contacto';
+      card.addEventListener('click', () => {
+        const cargos = ['Presidente', 'Secretaria', 'Tesorero', 'Vocal'];
+        const nombres = ['Juan Pérez Soto', 'Rosa Muñoz Llanca', 'Carlos Jara Paine', 'Lucía Antileo Huen.'];
+        const fonos = ['+56 9 8765 4321', '+56 9 7654 3210', '+56 9 6543 2109', '+56 9 5432 1098'];
+        const emails = ['jperez@gmail.com', 'rmunoz@gmail.com', 'cjara@gmail.com', 'lantileo@gmail.com'];
+        const avs = ['JP', 'RM', 'CJ', 'LA'];
+        abrirModalDirectivaInfo(cargos[idx] || 'Directivo', nombres[idx] || 'Nombre', fonos[idx] || '+56 9 ...', emails[idx] || 'correo@gmail.com', avs[idx] || 'JJ');
+      });
+    });
+
+    if (typeof initVeciAyudaTesterBar === 'function') {
+      initVeciAyudaTesterBar();
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recuperar Contraseña — VeciAyuda | Municipalidad de Padre Las Casas</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="veciayuda-core.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    .recover-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--sp-xl); position: relative; z-index: 1; }
+    .recover-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-xl); padding: var(--sp-2xl); width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); }
+    .step-recover { display: none; }
+    .step-recover.active { display: block; }
+    .success-anim { text-align: center; padding: var(--sp-xl) 0; }
+    .success-icon-big { font-size: 64px; margin-bottom: var(--sp-lg); animation: popIn 0.5s cubic-bezier(0.68,-0.55,0.27,1.55); }
+    @keyframes popIn { 0%{transform:scale(0);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+    .otp-inputs { display: flex; gap: var(--sp-sm); justify-content: center; margin: var(--sp-xl) 0; }
+    .otp-input { width: 56px; height: 64px; text-align: center; font-size: 24px; font-weight: 800; font-family: var(--font-brand); background: rgba(255,255,255,0.04); border: 2px solid var(--border); border-radius: var(--r-md); color: var(--text-primary); transition: all var(--transition); }
+    .otp-input:focus { outline: none; border-color: var(--accent-cyan); background: rgba(0,212,232,0.05); box-shadow: 0 0 0 3px rgba(0,212,232,0.15); }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<div class="recover-page">
+  <div class="recover-box">
+    <div style="text-align:center;margin-bottom:var(--sp-xl);">
+      <a href="veciayuda-login.html" style="color:var(--text-muted);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px;margin-bottom:var(--sp-xl);">← Volver al inicio de sesión</a>
+      <div style="width:64px;height:64px;background:var(--gradient-main);border-radius:var(--r-xl);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto var(--sp-lg);">🔑</div>
+      <div style="font-size:11px;color:var(--accent-cyan);font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:var(--sp-sm);">VeciAyuda — Municipalidad de Padre Las Casas</div>
+    </div>
+
+    <!-- STEP 1: Ingresar email/RUN -->
+    <div class="step-recover active" id="step1">
+      <h1 style="font-family:var(--font-brand);font-size:24px;font-weight:800;text-align:center;margin-bottom:var(--sp-sm);">¿Olvidaste tu contraseña?</h1>
+      <p style="font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:var(--sp-xl);line-height:1.6;">Ingresa tu correo o RUN y te enviaremos un enlace para restablecer tu contraseña.</p>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size:16px;">Correo electrónico o RUN</label>
+        <input type="text" class="form-control" id="recover-id" placeholder="Ej: tu@correo.cl o 12.345.678-9" style="font-size:16px;padding:14px 18px;">
+        <div class="form-hint">Usaremos el correo que registraste en VeciAyuda.</div>
+      </div>
+
+      <button class="btn btn-primary w-full" onclick="enviarEnlace()" style="justify-content:center;font-size:16px;padding:14px;">Enviar enlace de recuperación →</button>
+
+      <div style="text-align:center;margin-top:var(--sp-xl);">
+        <span style="font-size:13px;color:var(--text-muted);">¿No tienes cuenta? </span>
+        <a href="veciayuda-registro.html" style="color:var(--accent-cyan);text-decoration:none;font-size:13px;font-weight:600;">Regístrate aquí</a>
+      </div>
+    </div>
+
+    <!-- STEP 2: Código OTP (simulado) -->
+    <div class="step-recover" id="step2">
+      <h2 style="font-family:var(--font-brand);font-size:22px;font-weight:800;text-align:center;margin-bottom:var(--sp-sm);">Código de verificación</h2>
+      <p style="font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:var(--sp-sm);line-height:1.6;">Ingresa el código de 6 dígitos que enviamos a:</p>
+      <div style="text-align:center;margin-bottom:var(--sp-xl);"><strong style="color:var(--accent-cyan);" id="email-masked"></strong></div>
+
+      <div class="otp-inputs">
+        <input type="text" class="otp-input" maxlength="1" oninput="nextOtp(this, 1)" id="otp1">
+        <input type="text" class="otp-input" maxlength="1" oninput="nextOtp(this, 2)" id="otp2">
+        <input type="text" class="otp-input" maxlength="1" oninput="nextOtp(this, 3)" id="otp3">
+        <input type="text" class="otp-input" maxlength="1" oninput="nextOtp(this, 4)" id="otp4">
+        <input type="text" class="otp-input" maxlength="1" oninput="nextOtp(this, 5)" id="otp5">
+        <input type="text" class="otp-input" maxlength="1" oninput="nextOtp(this, 6)" id="otp6">
+      </div>
+
+      <div class="alert alert-info" style="font-size:13px;text-align:center;">
+        <span class="alert-icon">💡</span>
+        <span>Para esta demo, usa el código: <strong>123456</strong></span>
+      </div>
+
+      <button class="btn btn-primary w-full" onclick="verificarOTP()" style="justify-content:center;font-size:16px;padding:14px;margin-top:var(--sp-md);">Verificar código →</button>
+      <div style="text-align:center;margin-top:var(--sp-md);">
+        <button onclick="goStep(1)" style="background:none;border:none;color:var(--text-muted);font-size:13px;cursor:pointer;">← Cambiar correo</button>
+        <span style="color:var(--text-muted);font-size:13px;"> · </span>
+        <button onclick="reenviarCodigo()" style="background:none;border:none;color:var(--accent-cyan);font-size:13px;cursor:pointer;font-weight:600;">Reenviar código</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: Nueva contraseña -->
+    <div class="step-recover" id="step3">
+      <h2 style="font-family:var(--font-brand);font-size:22px;font-weight:800;text-align:center;margin-bottom:var(--sp-sm);">Nueva contraseña</h2>
+      <p style="font-size:14px;color:var(--text-secondary);text-align:center;margin-bottom:var(--sp-xl);">Elige una contraseña segura para tu cuenta.</p>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size:16px;">Nueva contraseña</label>
+        <div style="position:relative;">
+          <input type="password" class="form-control" id="new-pass" placeholder="Mínimo 8 caracteres" style="font-size:16px;padding:14px 18px;padding-right:50px;" oninput="checkPass(this.value)">
+          <button onclick="toggleVis('new-pass',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;">👁</button>
+        </div>
+        <div id="pass-meter" style="display:none;margin-top:8px;">
+          <div class="progress-bar-wrap" style="height:5px;"><div id="meter-bar" class="progress-bar" style="width:0;transition:width 0.3s;"></div></div>
+          <span id="meter-label" style="font-size:12px;color:var(--text-muted);">Ingresa contraseña</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="font-size:16px;">Confirmar contraseña</label>
+        <div style="position:relative;">
+          <input type="password" class="form-control" id="new-pass-c" placeholder="Repite la contraseña" style="font-size:16px;padding:14px 18px;padding-right:50px;">
+          <button onclick="toggleVis('new-pass-c',this)" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;">👁</button>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--sp-md);margin-bottom:var(--sp-lg);">
+        <div style="font-size:12px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Requisitos de contraseña</div>
+        <div id="req1" style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">○ Mínimo 8 caracteres</div>
+        <div id="req2" style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">○ Al menos una mayúscula</div>
+        <div id="req3" style="font-size:13px;color:var(--text-muted);margin-bottom:4px;">○ Al menos un número</div>
+        <div id="req4" style="font-size:13px;color:var(--text-muted);">○ Al menos un carácter especial</div>
+      </div>
+
+      <button class="btn btn-primary w-full" onclick="cambiarContrasena()" style="justify-content:center;font-size:16px;padding:14px;">🔒 Cambiar contraseña</button>
+    </div>
+
+    <!-- STEP 4: Éxito -->
+    <div class="step-recover" id="step4">
+      <div class="success-anim">
+        <div class="success-icon-big">✅</div>
+        <h2 style="font-family:var(--font-brand);font-size:24px;font-weight:800;margin-bottom:var(--sp-md);">¡Contraseña cambiada!</h2>
+        <p style="font-size:15px;color:var(--text-secondary);margin-bottom:var(--sp-xl);line-height:1.6;">Tu contraseña fue actualizada exitosamente. Ahora puedes iniciar sesión con tu nueva contraseña.</p>
+        <a href="veciayuda-login.html" class="btn btn-primary btn-lg" style="justify-content:center;">Iniciar Sesión →</a>
+        <div style="margin-top:var(--sp-xl);padding:var(--sp-md);background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:var(--r-lg);">
+          <div style="font-size:13px;color:var(--success);">🔒 Recomendación de seguridad: No compartas tu contraseña con nadie. VeciAyuda nunca te solicitará tu contraseña por teléfono o correo.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress dots -->
+    <div style="display:flex;justify-content:center;gap:8px;margin-top:var(--sp-xl);" id="progress-dots">
+      <div class="dot" id="d1" style="width:28px;height:6px;border-radius:3px;background:var(--accent-cyan);transition:all 0.3s;"></div>
+      <div class="dot" id="d2" style="width:8px;height:6px;border-radius:3px;background:rgba(255,255,255,0.1);transition:all 0.3s;"></div>
+      <div class="dot" id="d3" style="width:8px;height:6px;border-radius:3px;background:rgba(255,255,255,0.1);transition:all 0.3s;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentStep = 1;
+
+  function goStep(n) {
+    document.querySelectorAll('.step-recover').forEach(s => s.classList.remove('active'));
+    document.getElementById('step' + n).classList.add('active');
+    currentStep = n;
+    updateDots(n);
+  }
+
+  function updateDots(n) {
+    const dots = document.querySelectorAll('.dot');
+    dots.forEach((d, i) => {
+      d.style.width = (i + 1 === n) ? '28px' : '8px';
+      d.style.background = (i + 1 <= n && n < 4) ? 'var(--accent-cyan)' : (i + 1 < n) ? 'rgba(16,185,129,0.6)' : 'rgba(255,255,255,0.1)';
+    });
+    if (n === 4) document.getElementById('progress-dots').style.display = 'none';
+  }
+
+  let userToReset = null;
+
+  function enviarEnlace() {
+    const id = document.getElementById('recover-id').value.trim();
+    if (!id) { VeciUI.toast('Por favor ingresa tu correo o RUN.', 'warning'); return; }
+
+    if (typeof VeciDB !== 'undefined') {
+      userToReset = VeciDB.getUserByEmail(id) || VeciDB.getUserByRun(id);
+    }
+
+    let masked = id.includes('@') ? id.replace(/(.{2}).+(@.+)/, '$1***$2') : id.substring(0, 4) + '***';
+    document.getElementById('email-masked').textContent = id.includes('@') ? masked : id + ' (correo registrado)';
+    goStep(2);
+  }
+
+  function nextOtp(el, num) {
+    el.value = el.value.replace(/[^0-9]/g, '');
+    if (el.value && num < 6) document.getElementById('otp' + (num + 1)).focus();
+  }
+
+  function verificarOTP() {
+    const code = ['otp1','otp2','otp3','otp4','otp5','otp6'].map(id => document.getElementById(id).value).join('');
+    if (code === '123456') { goStep(3); }
+    else { VeciUI.toast('Código incorrecto. Para la prueba use: 123456', 'danger'); }
+  }
+
+  function reenviarCodigo() {
+    ['otp1','otp2','otp3','otp4','otp5','otp6'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('otp1').focus();
+    VeciUI.toast('Código reenviado a tu correo (demo: 123456)', 'info');
+  }
+
+  function toggleVis(id, btn) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+    btn.textContent = el.type === 'password' ? '👁' : '🙈';
+  }
+
+  function checkPass(val) {
+    const meter = document.getElementById('pass-meter');
+    const bar = document.getElementById('meter-bar');
+    const label = document.getElementById('meter-label');
+    if (!val) { meter.style.display = 'none'; return; }
+    meter.style.display = 'block';
+    let s = 0;
+    const r1 = val.length >= 8, r2 = /[A-Z]/.test(val), r3 = /[0-9]/.test(val), r4 = /[^A-Za-z0-9]/.test(val);
+    [r1,r2,r3,r4].forEach(r => r && s++);
+    const reqs = [r1,r2,r3,r4];
+    ['req1','req2','req3','req4'].forEach((id,i) => {
+      const el = document.getElementById(id);
+      el.style.color = reqs[i] ? 'var(--success)' : 'var(--text-muted)';
+      el.textContent = (reqs[i] ? '✓ ' : '○ ') + el.textContent.replace(/^[✓○] /, '');
+    });
+    const ws = ['25%','50%','75%','100%'], ls = ['Débil','Regular','Buena','Muy fuerte'], cs = ['#EF4444','#F59E0B','#3B7BF8','#10B981'];
+    bar.style.width = ws[s-1] || '5%';
+    bar.style.background = cs[s-1] || '#EF4444';
+    label.textContent = ls[s-1] || 'Muy débil';
+    label.style.color = cs[s-1] || '#EF4444';
+  }
+
+  function cambiarContrasena() {
+    const p1 = document.getElementById('new-pass').value;
+    const p2 = document.getElementById('new-pass-c').value;
+    if (!p1 || p1.length < 8) { VeciUI.toast('La contraseña debe tener al menos 8 caracteres.', 'warning'); return; }
+    if (p1 !== p2) { VeciUI.toast('Las contraseñas no coinciden. Verifica e intenta nuevamente.', 'warning'); return; }
+    
+    if (userToReset && typeof VeciDB !== 'undefined') {
+      userToReset.password = p1;
+      VeciDB.saveUser(userToReset);
+    }
+    goStep(4);
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof initVeciAyudaTesterBar === 'function') {
+      initVeciAyudaTesterBar();
+    }
+  });
+</script>
+</body>
+</html>

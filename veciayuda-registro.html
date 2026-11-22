@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crear Cuenta — VeciAyuda | Municipalidad Padre Las Casas</title>
+  <meta name="description" content="Regístrate en VeciAyuda para solicitar tu certificado de residencia digital en Padre Las Casas.">
+  <link rel="stylesheet" href="style.css">
+  <script src="veciayuda-core.js"></script>
+  <style>
+    /* ===== REGISTRO EXTRAS ===== */
+    .registro-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-xl) var(--sp-md);
+      position: relative;
+      z-index: 1;
+    }
+    .registro-wrap {
+      width: 100%;
+      max-width: 680px;
+    }
+    .registro-header {
+      text-align: center;
+      margin-bottom: var(--sp-2xl);
+    }
+    .registro-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--r-xl);
+      background: var(--gradient-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      margin: 0 auto var(--sp-lg);
+      box-shadow: 0 0 30px rgba(0,212,232,0.3);
+    }
+    .registro-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: var(--sp-2xl);
+    }
+
+    /* Wizard progress */
+    .wizard-progress {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: var(--sp-2xl);
+    }
+    .wizard-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      position: relative;
+    }
+    .wizard-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: var(--border);
+      transition: background 0.4s;
+      z-index: 0;
+    }
+    .wizard-step.done:not(:last-child)::after,
+    .wizard-step.active:not(:last-child)::after {
+      background: var(--gradient-main);
+    }
+    .wizard-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      transition: all 0.3s;
+      position: relative;
+      z-index: 1;
+      border: 2px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-muted);
+    }
+    .wizard-step.active .wizard-num {
+      background: var(--gradient-main);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 0 20px rgba(0,212,232,0.35);
+    }
+    .wizard-step.done .wizard-num {
+      background: rgba(16,185,129,0.15);
+      color: var(--success);
+      border-color: var(--success);
+    }
+    .wizard-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      text-align: center;
+      transition: color 0.3s;
+      padding: 0 4px;
+    }
+    .wizard-step.active .wizard-label { color: var(--accent-cyan); }
+    .wizard-step.done .wizard-label { color: var(--success); }
+
+    /* Steps visibility */
+    .wizard-pane { display: none; }
+    .wizard-pane.active { display: block; animation: modal-in 0.3s ease; }
+
+    /* Form specifics */
+    .form-label {
+      font-size: 14px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 600;
+    }
+    .form-control {
+      font-size: 16px;
+      padding: 14px 16px;
+    }
+    .run-wrap {
+      position: relative;
+    }
+    .run-status {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .run-status.valid { color: var(--success); }
+    .run-status.invalid { color: var(--danger); }
+
+    .pass-wrap {
+      position: relative;
+    }
+    .pass-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-muted);
+      user-select: none;
+      transition: color 0.2s;
+      background: none;
+      border: none;
+      padding: 4px;
+    }
+    .pass-toggle:hover { color: var(--text-primary); }
+
+    .wizard-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--sp-xl);
+      padding-top: var(--sp-xl);
+      border-top: 1px solid var(--border);
+      gap: var(--sp-md);
+    }
+    .btn-step {
+      min-height: 52px;
+      min-width: 160px;
+      font-size: 15px;
+    }
+
+    /* Resumen Paso 3 */
+    .resumen-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--sp-md) var(--sp-xl);
+      margin-bottom: var(--sp-lg);
+    }
+    .resumen-field label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 3px;
+    }
+    .resumen-field span {
+      font-size: 14px;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Checkbox custom */
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-md);
+      padding: var(--sp-md) var(--sp-lg);
+      background: rgba(255,255,255,0.03);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-lg);
+      margin-bottom: var(--sp-md);
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .check-item:hover {
+      border-color: var(--border-hover);
+      background: rgba(0,212,232,0.04);
+    }
+    .check-item input[type="checkbox"] {
+      accent-color: var(--accent-cyan);
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .check-item-text {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .check-item-text a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+    .check-item-text a:hover { text-decoration: underline; }
+
+    /* Success screen */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: var(--sp-2xl) 0;
+      animation: modal-in 0.4s ease;
+    }
+    .success-screen.visible { display: block; }
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: rgba(16,185,129,0.15);
+      border: 2px solid var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto var(--sp-xl);
+      box-shadow: 0 0 30px rgba(16,185,129,0.2);
+    }
+
+    .field-error {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 4px;
+      display: none;
+    }
+    .field-error.visible { display: block; }
+
+    @media (max-width: 768px) {
+      .resumen-grid { grid-template-columns: 1fr; }
+      .wizard-label { display: none; }
+      .registro-card { padding: var(--sp-lg); }
+      .wizard-actions { flex-direction: column-reverse; }
+      .btn-step { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<div class="registro-page">
+  <div class="registro-wrap">
+    <!-- Header -->
+    <div class="registro-header">
+      <div class="registro-logo">🏛️</div>
+      <a href="veciayuda-landing.html" style="color:var(--text-muted); text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:6px; margin-bottom:var(--sp-md);">← Volver al inicio</a>
+      <h1 style="font-family:var(--font-brand); font-size:28px; font-weight:800; margin-bottom:var(--sp-sm);">Crear cuenta en VeciAyuda</h1>
+      <p style="font-size:15px; color:var(--text-secondary);">Regístrate para solicitar y gestionar tus certificados de residencia digitales.</p>
+    </div>
+
+    <!-- Wizard Card -->
+    <div class="registro-card" id="registro-card">
+      <!-- Progress Bar -->
+      <div class="wizard-progress" id="wizard-progress">
+        <div class="wizard-step active" id="ws-1">
+          <div class="wizard-num">1</div>
+          <div class="wizard-label">Datos personales</div>
+        </div>
+        <div class="wizard-step" id="ws-2">
+          <div class="wizard-num">2</div>
+          <div class="wizard-label">Dirección</div>
+        </div>
+        <div class="wizard-step" id="ws-3">
+          <div class="wizard-num">3</div>
+          <div class="wizard-label">Confirmación</div>
+        </div>
+      </div>
+
+      <!-- ===== PASO 1: DATOS PERSONALES ===== -->
+      <div class="wizard-pane active" id="pane-1">
+        <div style="margin-bottom:var(--sp-xl);">
+          <h2 style="font-family:var(--font-brand); font-size:20px; font-weight:700; margin-bottom:4px;">Datos personales</h2>
+          <p style="font-size:14px; color:var(--text-muted);">Ingresa tus datos tal como figuran en tu cédula de identidad.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="nombre">Nombre completo <span class="req" style="color:var(--accent-cyan);">*</span></label>
+          <input type="text" class="form-control" id="nombre" placeholder="Ej: María Alejandra Fuentes Riquelme" autocomplete="name">
+          <div class="field-error" id="err-nombre">Este campo es obligatorio.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="run">RUN (sin puntos, con guión) <span class="req" style="color:var(--accent-cyan);">*</span></label>
+          <div class="run-wrap">
+            <input
+              type="text"
+              class="form-control"
+              id="run"
+              placeholder="Ej: 12847391-5"
+              maxlength="12"
+              style="padding-right: 48px;"
+              autocomplete="off"
+            >
+            <span class="run-status" id="run-status"></span>
+          </div>
+          <div class="form-hint" id="run-hint">Ingresa tu RUN con guión. El dígito verificador se validará automáticamente.</div>
+          <div class="field-error" id="err-run">RUN inválido. Verifica el número y el dígito verificador.</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="nacimiento">Fecha de nacimiento</label>
+            <input type="date" class="form-control" id="nacimiento">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="telefono">Teléfono</label>
+            <input type="tel" class="form-control" id="telefono" placeholder="+56 9 XXXX XXXX" maxlength="16">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Correo electrónico <span class="req" style="color:var(--accent-cyan);">*</span></label>
+          <input type="email" class="form-control" id="email" placeholder="tu@correo.cl" autocomplete="email">
+          <div class="field-error" id="err-email">Ingresa un correo electrónico válido.</div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="password">Contraseña <span class="req" style="color:var(--accent-cyan);">*</span></label>
+            <div class="pass-wrap">
+              <input type="password" class="form-control" id="password" placeholder="Mínimo 8 caracteres" style="padding-right:48px;" autocomplete="new-password">
+              <button type="button" class="pass-toggle" onclick="togglePass('password', this)" title="Mostrar contraseña">👁</button>
+            </div>
+            <div class="field-error" id="err-pass">La contraseña debe tener al menos 8 caracteres.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password2">Confirmar contraseña <span class="req" style="color:var(--accent-cyan);">*</span></label>
+            <div class="pass-wrap">
+              <input type="password" class="form-control" id="password2" placeholder="Repite la contraseña" style="padding-right:48px;" autocomplete="new-password">
+              <button type="button" class="pass-toggle" onclick="togglePass('password2', this)" title="Mostrar contraseña">👁</button>
+            </div>
+            <div class="field-error" id="err-pass2">Las contraseñas no coinciden.</div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <div>
+            <p style="font-size:13px; color:var(--text-muted);">¿Ya tienes cuenta? <a href="veciayuda-login.html" style="color:var(--accent-cyan); text-decoration:none;">Iniciar sesión</a></p>
+          </div>
+          <button type="button" class="btn btn-primary btn-step" onclick="irPaso(2)">
+            Siguiente → Dirección
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== PASO 2: DIRECCIÓN ===== -->
+      <div class="wizard-pane" id="pane-2">
+        <div style="margin-bottom:var(--sp-xl);">
+          <h2 style="font-family:var(--font-brand); font-size:20px; font-weight:700; margin-bottom:4px;">Dirección de residencia</h2>
+          <p style="font-size:14px; color:var(--text-muted);">Ingresa la dirección donde resides actualmente en la comuna de Padre Las Casas.</p>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="calle">Calle y número <span class="req" style="color:var(--accent-cyan);">*</span></label>
+          <input type="text" class="form-control" id="calle" placeholder="Ej: Av. Alemania 1247, Depto. 3B" autocomplete="street-address">
+          <div class="field-error" id="err-calle">La dirección es obligatoria.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="villa">Villa / Población</label>
+          <input type="text" class="form-control" id="villa" placeholder="Ej: Villa Los Pinos" autocomplete="off">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="sector">Tipo de sector <span class="req" style="color:var(--accent-cyan);">*</span></label>
+            <select class="form-control" id="sector">
+              <option value="">Seleccionar...</option>
+              <option value="urbano">Urbano</option>
+              <option value="rural">Rural</option>
+              <option value="indigena">Comunidad Indígena</option>
+            </select>
+            <div class="field-error" id="err-sector">Selecciona el tipo de sector.</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="jjvv">Junta de Vecinos <span class="req" style="color:var(--accent-cyan);">*</span></label>
+            <select class="form-control" id="jjvv">
+              <option value="">Seleccionar...</option>
+              <option value="los-pinos">JJVV Villa Los Pinos</option>
+              <option value="metrenco">JJVV Sector Rural Metrenco</option>
+              <option value="las-quilas">JJVV Villa Las Quilas</option>
+              <option value="nueva-aurora">JJVV Nueva Aurora</option>
+              <option value="el-bosque">JJVV El Bosque</option>
+              <option value="santa-rosa">JJVV Santa Rosa de Boroa</option>
+              <option value="coilaco">JJVV Sector Coilaco</option>
+              <option value="santa-elena">JJVV Villa Santa Elena</option>
+              <option value="los-aromos">JJVV Los Aromos Sector Norte</option>
+              <option value="tierras-nuevas">JJVV Tierras Nuevas</option>
+              <option value="no-se">No lo sé / No pertenezco</option>
+            </select>
+            <div class="field-error" id="err-jjvv">Selecciona tu Junta de Vecinos.</div>
+          </div>
+        </div>
+
+        <div class="alert alert-info" style="margin-top:var(--sp-md);">
+          <span class="alert-icon">ℹ️</span>
+          <div style="font-size:13px;">Si no conoces tu Junta de Vecinos, selecciona la última opción. El equipo municipal te asignará la JJVV correspondiente según tu dirección.</div>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-ghost btn-step" onclick="irPaso(1)">
+            ← Volver
+          </button>
+          <button type="button" class="btn btn-primary btn-step" onclick="irPaso(3)">
+            Siguiente → Confirmar
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== PASO 3: CONFIRMACIÓN ===== -->
+      <div class="wizard-pane" id="pane-3">
+        <div style="margin-bottom:var(--sp-xl);">
+          <h2 style="font-family:var(--font-brand); font-size:20px; font-weight:700; margin-bottom:4px;">Confirma tus datos</h2>
+          <p style="font-size:14px; color:var(--text-muted);">Revisa que todo esté correcto antes de crear tu cuenta.</p>
+        </div>
+
+        <!-- Resumen datos -->
+        <div style="background:rgba(0,212,232,0.05); border:1px solid rgba(0,212,232,0.15); border-radius:var(--r-lg); padding:var(--sp-lg); margin-bottom:var(--sp-xl);">
+          <div style="font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--accent-cyan); margin-bottom:var(--sp-lg);">📋 Resumen de registro</div>
+          <div class="resumen-grid" id="resumen-grid">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+
+        <!-- Checkboxes legales -->
+        <label class="check-item" for="ck-terminos">
+          <input type="checkbox" id="ck-terminos">
+          <div class="check-item-text">
+            Acepto los <a href="#">términos de uso</a> y la <a href="#">política de privacidad</a> de la plataforma VeciAyuda, administrada por la Municipalidad de Padre Las Casas.
+          </div>
+        </label>
+
+        <label class="check-item" for="ck-datos">
+          <input type="checkbox" id="ck-datos">
+          <div class="check-item-text">
+            Autorizo el tratamiento de mis datos personales por parte de la Municipalidad de Padre Las Casas, conforme a la <strong>Ley N° 19.628</strong> sobre Protección de la Vida Privada, con la finalidad de gestionar certificados de residencia.
+          </div>
+        </label>
+
+        <div class="field-error visible" id="err-terminos" style="display:none; margin-bottom:var(--sp-md);">Debes aceptar los términos y autorizar el tratamiento de datos para continuar.</div>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-ghost btn-step" onclick="irPaso(2)">
+            ← Volver
+          </button>
+          <button type="button" class="btn btn-primary btn-step" onclick="enviarFormulario()" id="btn-crear">
+            ✓ Crear mi Cuenta →
+          </button>
+        </div>
+      </div>
+    </div><!-- /registro-card -->
+
+    <!-- SUCCESS SCREEN -->
+    <div class="registro-card success-screen" id="success-screen">
+      <div class="success-icon">✅</div>
+      <h2 style="font-family:var(--font-brand); font-size:26px; font-weight:800; margin-bottom:var(--sp-md);">¡Cuenta creada exitosamente!</h2>
+      <p style="font-size:15px; color:var(--text-secondary); max-width:440px; margin:0 auto var(--sp-xl);">
+        Tu cuenta ha sido registrada. Hemos enviado un correo de verificación a <strong id="email-enviado"></strong>. 
+        Una vez verificado, podrás iniciar sesión y solicitar tu primer certificado de residencia.
+      </p>
+      <div style="display:flex; gap:var(--sp-md); justify-content:center; flex-wrap:wrap;">
+        <a href="veciayuda-vecino.html" class="btn btn-primary btn-lg">Acceder a Mi Panel de Vecino →</a>
+        <a href="veciayuda-login.html" class="btn btn-ghost">Ir al Login</a>
+        <a href="veciayuda-landing.html" class="btn btn-ghost">Volver al inicio</a>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:var(--sp-lg);">
+      <p style="font-size:12.5px; color:var(--text-muted);">🔒 Tus datos están protegidos · Municipalidad de Padre Las Casas © 2024</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =========================================================
+     UTILIDADES
+  ========================================================= */
+  let runValido = false;
+  let pasoActual = 1;
+
+  /* =========================================================
+     VALIDACIÓN RUT CHILENO (Módulo 11)
+  ========================================================= */
+  function validarRUT(rut) {
+    if (!rut || typeof rut !== 'string') return false;
+    rut = rut.replace(/\./g, '').trim().toUpperCase();
+    if (!/^\d{7,8}-[\dKk]$/.test(rut)) return false;
+
+    const partes = rut.split('-');
+    const cuerpo = partes[0];
+    const dvIngresado = partes[1];
+
+    let suma = 0;
+    let multiplo = 2;
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+      suma += parseInt(cuerpo[i]) * multiplo;
+      multiplo = multiplo < 7 ? multiplo + 1 : 2;
+    }
+    const resto = 11 - (suma % 11);
+    let dvCalculado;
+    if (resto === 11) dvCalculado = '0';
+    else if (resto === 10) dvCalculado = 'K';
+    else dvCalculado = String(resto);
+
+    return dvCalculado === dvIngresado.toUpperCase();
+  }
+
+  /* =========================================================
+     INPUT RUN — validación en tiempo real
+  ========================================================= */
+  document.getElementById('run').addEventListener('input', function() {
+    const val = this.value.trim();
+    const status = document.getElementById('run-status');
+    const hint = document.getElementById('run-hint');
+    const err = document.getElementById('err-run');
+
+    if (!val) {
+      status.textContent = '';
+      status.className = 'run-status';
+      runValido = false;
+      err.style.display = 'none';
+      return;
+    }
+
+    if (val.includes('-') && val.split('-').length === 2) {
+      if (validarRUT(val)) {
+        status.textContent = '✓';
+        status.className = 'run-status valid';
+        hint.textContent = 'RUN válido.';
+        hint.style.color = 'var(--success)';
+        err.style.display = 'none';
+        runValido = true;
+      } else {
+        status.textContent = '✗';
+        status.className = 'run-status invalid';
+        hint.textContent = 'Dígito verificador incorrecto.';
+        hint.style.color = 'var(--danger)';
+        runValido = false;
+      }
+    } else {
+      status.textContent = '';
+      status.className = 'run-status';
+      hint.textContent = 'Ingresa tu RUN con guión. Ej: 12847391-5';
+      hint.style.color = '';
+      runValido = false;
+    }
+  });
+
+  /* Toggle mostrar/ocultar contraseña */
+  function togglePass(fieldId, btn) {
+    const field = document.getElementById(fieldId);
+    if (field.type === 'password') {
+      field.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      field.type = 'password';
+      btn.textContent = '👁';
+    }
+  }
+
+  /* =========================================================
+     NAVEGACIÓN WIZARD
+  ========================================================= */
+  function irPaso(paso) {
+    if (paso > pasoActual && !validarPaso(pasoActual)) return;
+
+    // Actualizar visual de steps
+    for (let i = 1; i <= 3; i++) {
+      const ws = document.getElementById('ws-' + i);
+      ws.className = 'wizard-step';
+      if (i < paso) ws.classList.add('done');
+      if (i === paso) ws.classList.add('active');
+    }
+
+    // Ocultar todos los paneles
+    document.querySelectorAll('.wizard-pane').forEach(p => p.classList.remove('active'));
+    // Mostrar el panel del paso
+    document.getElementById('pane-' + paso).classList.add('active');
+
+    // Si vamos al paso 3, construir resumen
+    if (paso === 3) construirResumen();
+
+    pasoActual = paso;
+    // Scroll al inicio del card
+    document.getElementById('registro-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* =========================================================
+     VALIDACIONES POR PASO
+  ========================================================= */
+  function validarPaso(paso) {
+    if (paso === 1) return validarPaso1();
+    if (paso === 2) return validarPaso2();
+    return true;
+  }
+
+  function mostrarError(id, mostrar) {
+    const el = document.getElementById(id);
+    el.style.display = mostrar ? 'block' : 'none';
+  }
+  function marcarCampo(id, error) {
+    const el = document.getElementById(id);
+    el.style.borderColor = error ? 'var(--danger)' : '';
+  }
+
+  function validarPaso1() {
+    let ok = true;
+
+    const nombre = document.getElementById('nombre').value.trim();
+    if (!nombre) {
+      mostrarError('err-nombre', true);
+      marcarCampo('nombre', true);
+      ok = false;
+    } else {
+      mostrarError('err-nombre', false);
+      marcarCampo('nombre', false);
+    }
+
+    const run = document.getElementById('run').value.trim();
+    if (!run || !runValido) {
+      mostrarError('err-run', true);
+      marcarCampo('run', true);
+      ok = false;
+    } else if (typeof VeciDB !== 'undefined' && VeciDB.getUserByRun(run)) {
+      const errRun = document.getElementById('err-run');
+      errRun.textContent = 'Este RUN ya se encuentra registrado en VeciAyuda.';
+      mostrarError('err-run', true);
+      marcarCampo('run', true);
+      ok = false;
+    } else {
+      mostrarError('err-run', false);
+      marcarCampo('run', false);
+    }
+
+    const email = document.getElementById('email').value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!emailOk) {
+      mostrarError('err-email', true);
+      marcarCampo('email', true);
+      ok = false;
+    } else if (typeof VeciDB !== 'undefined' && VeciDB.getUserByEmail(email)) {
+      const errEmail = document.getElementById('err-email');
+      errEmail.textContent = 'Este correo electrónico ya está registrado.';
+      mostrarError('err-email', true);
+      marcarCampo('email', true);
+      ok = false;
+    } else {
+      mostrarError('err-email', false);
+      marcarCampo('email', false);
+    }
+
+    const pass = document.getElementById('password').value;
+    if (pass.length < 8) {
+      mostrarError('err-pass', true);
+      marcarCampo('password', true);
+      ok = false;
+    } else {
+      mostrarError('err-pass', false);
+      marcarCampo('password', false);
+    }
+
+    const pass2 = document.getElementById('password2').value;
+    if (pass !== pass2) {
+      mostrarError('err-pass2', true);
+      marcarCampo('password2', true);
+      ok = false;
+    } else {
+      mostrarError('err-pass2', false);
+      marcarCampo('password2', false);
+    }
+
+    return ok;
+  }
+
+  function validarPaso2() {
+    let ok = true;
+
+    const calle = document.getElementById('calle').value.trim();
+    if (!calle) {
+      mostrarError('err-calle', true);
+      marcarCampo('calle', true);
+      ok = false;
+    } else {
+      mostrarError('err-calle', false);
+      marcarCampo('calle', false);
+    }
+
+    const sector = document.getElementById('sector').value;
+    if (!sector) {
+      mostrarError('err-sector', true);
+      marcarCampo('sector', true);
+      ok = false;
+    } else {
+      mostrarError('err-sector', false);
+      marcarCampo('sector', false);
+    }
+
+    const jjvv = document.getElementById('jjvv').value;
+    if (!jjvv) {
+      mostrarError('err-jjvv', true);
+      marcarCampo('jjvv', true);
+      ok = false;
+    } else {
+      mostrarError('err-jjvv', false);
+      marcarCampo('jjvv', false);
+    }
+
+    return ok;
+  }
+
+  /* =========================================================
+     RESUMEN PASO 3
+  ========================================================= */
+  function construirResumen() {
+    const jjvvSelect = document.getElementById('jjvv');
+    const jjvvText = jjvvSelect.options[jjvvSelect.selectedIndex]?.text || '—';
+    const sectorSelect = document.getElementById('sector');
+    const sectorText = sectorSelect.options[sectorSelect.selectedIndex]?.text || '—';
+    const villa = document.getElementById('villa').value.trim();
+    const direccionCompleta = document.getElementById('calle').value.trim() + (villa ? ', ' + villa : '');
+
+    const campos = [
+      { label: 'Nombre completo', valor: document.getElementById('nombre').value.trim() },
+      { label: 'RUN', valor: document.getElementById('run').value.trim().toUpperCase() },
+      { label: 'Correo electrónico', valor: document.getElementById('email').value.trim() },
+      { label: 'Teléfono', valor: document.getElementById('telefono').value.trim() || '—' },
+      { label: 'Dirección', valor: direccionCompleta },
+      { label: 'Sector', valor: sectorText },
+      { label: 'Junta de Vecinos', valor: jjvvText },
+    ];
+
+    const grid = document.getElementById('resumen-grid');
+    grid.innerHTML = campos.map(c => `
+      <div class="resumen-field">
+        <label>${c.label}</label>
+        <span>${c.valor}</span>
+      </div>
+    `).join('');
+  }
+
+  /* =========================================================
+     ENVÍO DEL FORMULARIO Y GUARDADO EN VECIDB
+  ========================================================= */
+  function enviarFormulario() {
+    const ckTerminos = document.getElementById('ck-terminos').checked;
+    const ckDatos = document.getElementById('ck-datos').checked;
+    const errTerminos = document.getElementById('err-terminos');
+
+    if (!ckTerminos || !ckDatos) {
+      errTerminos.style.display = 'block';
+      errTerminos.textContent = 'Debes aceptar ambas condiciones para crear tu cuenta.';
+      return;
+    }
+    errTerminos.style.display = 'none';
+
+    // Animación de envío
+    const btn = document.getElementById('btn-crear');
+    btn.textContent = '⏳ Creando cuenta...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      const nombre = document.getElementById('nombre').value.trim();
+      const run = document.getElementById('run').value.trim().toUpperCase();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const telefono = document.getElementById('telefono').value.trim();
+      const calle = document.getElementById('calle').value.trim();
+      const villa = document.getElementById('villa').value.trim();
+      const direccionCompleta = calle + (villa ? ', ' + villa : '');
+      const sector = document.getElementById('sector').value;
+      const jjvvSelect = document.getElementById('jjvv');
+      const jjvvText = jjvvSelect.options[jjvvSelect.selectedIndex]?.text || '';
+
+      if (typeof VeciDB !== 'undefined') {
+        VeciDB.saveUser({
+          nombre,
+          run,
+          email,
+          password,
+          telefono,
+          direccion: direccionCompleta,
+          sector,
+          jjvv: jjvvText,
+          rol: 'vecino',
+          estado: 'activo'
+        });
+        // Iniciar sesión activa de prueba
+        if (typeof VeciAuth !== 'undefined') {
+          VeciAuth.login(email, password);
+        }
+      }
+
+      document.getElementById('email-enviado').textContent = email;
+      document.getElementById('registro-card').style.display = 'none';
+      const ss = document.getElementById('success-screen');
+      ss.style.display = 'block';
+      ss.classList.add('visible');
+      ss.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 900);
+  }
+
+  // Inicializar barra de pruebas
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof initVeciAyudaTesterBar === 'function') {
+      initVeciAyudaTesterBar();
+    }
+  });
+</script>
+</body>
+</html>

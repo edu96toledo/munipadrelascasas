@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Área Social DIDECO — VeciAyuda | Municipalidad de Padre Las Casas</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="veciayuda-core.js"></script>
+  <style>
+    /* Estilos especializados para la Plataforma del Área Social */
+    .social-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--r-full);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-rsh-40 { background: rgba(236,72,153,0.15); color: #F472B6; border: 1px solid rgba(236,72,153,0.3); }
+    .badge-rsh-60 { background: rgba(59,123,248,0.15); color: #60A5FA; border: 1px solid rgba(59,123,248,0.3); }
+    .badge-rsh-80 { background: rgba(245,158,11,0.15); color: #FBBF24; border: 1px solid rgba(245,158,11,0.3); }
+    
+    .social-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: var(--sp-md);
+      margin-bottom: var(--sp-xl);
+    }
+    .social-stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: var(--sp-lg);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+      transition: all var(--transition);
+    }
+    .social-stat-card:hover {
+      border-color: rgba(236,72,153,0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    }
+    .social-stat-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--r-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .stat-pink { background: rgba(236,72,153,0.15); color: #F472B6; border: 1px solid rgba(236,72,153,0.3); }
+    .stat-purple { background: rgba(124,58,237,0.15); color: #A78BFA; border: 1px solid rgba(124,58,237,0.3); }
+    .stat-cyan { background: rgba(0,212,232,0.15); color: #38BDF8; border: 1px solid rgba(0,212,232,0.3); }
+    .stat-green { background: rgba(16,185,129,0.15); color: #34D399; border: 1px solid rgba(16,185,129,0.3); }
+
+    .case-detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13.5px;
+    }
+    .case-detail-row:last-child { border-bottom: none; }
+    .case-detail-label { color: var(--text-muted); font-weight: 500; }
+    .case-detail-val { font-weight: 600; text-align: right; }
+
+    .doc-preview-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      margin-bottom: 8px;
+      transition: all var(--transition);
+    }
+    .doc-preview-pill:hover {
+      background: rgba(255,255,255,0.06);
+      border-color: var(--accent-cyan);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6, 13, 26, 0.82);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-md);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-container {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-2xl);
+      width: 100%;
+      max-width: 680px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: var(--sp-2xl);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      animation: modalIn 0.25s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .mobile-header {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--sp-md) var(--sp-lg);
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .hamburger {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 18px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: var(--r-md);
+    }
+    @media (max-width: 768px) {
+      .sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        height: 100vh;
+        z-index: 200;
+        transition: left 0.3s ease;
+      }
+      .sidebar.open { left: 0; }
+      .mobile-header { display: flex; }
+      .main-content { padding: var(--sp-md); }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- Mobile Header -->
+<div class="mobile-header">
+  <div style="display:flex;align-items:center;gap:var(--sp-sm);">
+    <div class="brand-icon" style="background:linear-gradient(135deg, #EC4899, #7C3AED);">🤝</div>
+    <span style="font-family:var(--font-brand);font-weight:700;font-size:14px;">DIDECO Social · PLC</span>
+  </div>
+  <button class="hamburger" onclick="toggleSidebar()">☰</button>
+</div>
+
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <a href="veciayuda-social.html" class="sidebar-brand">
+      <div class="brand-icon" style="background:linear-gradient(135deg, #EC4899, #7C3AED);">🤝</div>
+      <div class="brand-text">
+        <span class="brand-name">Área Social</span>
+        <span class="brand-sub">DIDECO Padre Las Casas</span>
+      </div>
+    </a>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Gestión de Casos</div>
+      <ul class="sidebar-nav">
+        <li>
+          <a href="#casos" class="sidebar-link active" onclick="filtrarEstadoSocial('todos')">
+            <span class="s-icon">📥</span> Bandeja de Casos
+            <span class="s-badge" id="badge-total-casos" style="background:#EC4899;">3</span>
+          </a>
+        </li>
+        <li>
+          <a href="#pendientes" class="sidebar-link" onclick="filtrarEstadoSocial('en_revision')">
+            <span class="s-icon">⏳</span> En Evaluación
+          </a>
+        </li>
+        <li>
+          <a href="#visitas" class="sidebar-link" onclick="filtrarEstadoSocial('visita')">
+            <span class="s-icon">🏠</span> Visitas a Terreno
+          </a>
+        </li>
+        <li>
+          <a href="#resueltos" class="sidebar-link" onclick="filtrarEstadoSocial('aprobado')">
+            <span class="s-icon">✓</span> Casos Resueltos
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Informes e Instrumentos</div>
+      <ul class="sidebar-nav">
+        <li>
+          <a href="#informes-emitidos" class="sidebar-link" onclick="mostrarSeccion('informes')">
+            <span class="s-icon">📑</span> Informes Sociales
+          </a>
+        </li>
+        <li>
+          <a href="veciayuda-landing.html#validador" target="_blank" class="sidebar-link">
+            <span class="s-icon">🔍</span> Validador de Folios
+          </a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Otros Paneles</div>
+      <ul class="sidebar-nav">
+        <li><a href="veciayuda-admin.html" class="sidebar-link"><span class="s-icon">🛡️</span> Panel General Admin</a></li>
+        <li><a href="veciayuda-jjvv.html" class="sidebar-link"><span class="s-icon">🏘️</span> Panel JJVV</a></li>
+        <li><a href="veciayuda-vecino.html" class="sidebar-link"><span class="s-icon">👤</span> Panel Vecino</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" style="background:#EC4899; color:#fff;">CS</div>
+        <div class="user-info">
+          <div class="user-name">Lic. Camila San Martín</div>
+          <div class="user-role">Asistente Social DIDECO</div>
+        </div>
+        <a href="veciayuda-login.html" title="Cerrar sesión" style="color:var(--text-muted);font-size:18px;text-decoration:none;margin-left:auto;">⏻</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <!-- PAGE HEADER -->
+    <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:var(--sp-md);">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <span class="badge" style="background:rgba(236,72,153,0.15); color:#F472B6; font-size:11px; font-weight:800;">
+            DIRECCIÓN DE DESARROLLO COMUNITARIO (DIDECO)
+          </span>
+          <span class="badge" style="background:rgba(16,185,129,0.15); color:var(--success); font-size:11px;">
+            Plataforma 100% Activa
+          </span>
+        </div>
+        <h1 class="page-title">🤝 Evaluación Social y Acreditación de Residencia</h1>
+        <p class="page-subtitle">Verificación de antecedentes socioeconómicos (RSH), visitas a terreno y emisión de informes sociales técnicos.</p>
+      </div>
+
+      <div style="display:flex; gap:var(--sp-sm); flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="recargarBandejaSocial()">
+          🔄 Actualizar
+        </button>
+        <a href="veciayuda-landing.html#validador" class="btn btn-secondary btn-sm" target="_blank">
+          🔍 Validar Folio Público
+        </a>
+      </div>
+    </div>
+
+    <!-- STATS CARDS -->
+    <div class="social-stat-grid">
+      <div class="social-stat-card">
+        <div class="social-stat-icon stat-pink">📋</div>
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Casos en Revisión</div>
+          <div style="font-family:var(--font-brand); font-size:24px; font-weight:900; color:#F472B6;" id="stat-pendientes">2</div>
+          <div style="font-size:11px; color:var(--text-muted);">Requieren informe o visita</div>
+        </div>
+      </div>
+
+      <div class="social-stat-card">
+        <div class="social-stat-icon stat-purple">📑</div>
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Informes Emitidos</div>
+          <div style="font-family:var(--font-brand); font-size:24px; font-weight:900; color:#A78BFA;" id="stat-informes">1</div>
+          <div style="font-size:11px; color:var(--text-muted);">Con firma y timbre DIDECO</div>
+        </div>
+      </div>
+
+      <div class="social-stat-card">
+        <div class="social-stat-icon stat-cyan">🏠</div>
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Visitas a Terreno</div>
+          <div style="font-family:var(--font-brand); font-size:24px; font-weight:900; color:#38BDF8;" id="stat-visitas">1</div>
+          <div style="font-size:11px; color:var(--text-muted);">Agendadas para inspección</div>
+        </div>
+      </div>
+
+      <div class="social-stat-card">
+        <div class="social-stat-icon stat-green">✅</div>
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Certificados Aprobados</div>
+          <div style="font-family:var(--font-brand); font-size:24px; font-weight:900; color:#34D399;" id="stat-aprobados">1</div>
+          <div style="font-size:11px; color:var(--text-muted);">Listos para descarga</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FILTER & SEARCH BAR -->
+    <div class="card" style="margin-bottom:var(--sp-xl); padding:var(--sp-lg);">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--sp-md);">
+        <!-- Search Input -->
+        <div style="flex:1; min-width:260px; position:relative;">
+          <input
+            type="text"
+            class="form-control"
+            id="filtro-busqueda"
+            placeholder="🔍 Buscar por nombre, RUN, folio o Junta de Vecinos..."
+            oninput="filtrarCasos()"
+            style="padding-left:14px; font-size:13.5px;"
+          >
+        </div>
+
+        <!-- Filter Selects -->
+        <div style="display:flex; gap:var(--sp-sm); flex-wrap:wrap;">
+          <select class="form-control" id="filtro-programa" onchange="filtrarCasos()" style="width:auto; font-size:13px;">
+            <option value="todos">Todos los programas sociales</option>
+            <option value="Subsidio Habitacional">Subsidios Habitacionales (DS49 / DS1)</option>
+            <option value="Agua Potable">Subsidio Agua Potable (SAP)</option>
+            <option value="Beca">Becas Educacionales (JUNAEB / Indígena)</option>
+            <option value="Adulto Mayor">Adultos Mayores / Emergencia Social</option>
+          </select>
+
+          <select class="form-control" id="filtro-estado-select" onchange="filtrarCasos()" style="width:auto; font-size:13px;">
+            <option value="todos">Todos los estados</option>
+            <option value="en_revision">En Evaluación Social</option>
+            <option value="aprobado">Aprobados / Con Certificado</option>
+            <option value="rechazado">Rechazados</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-lg); flex-wrap:wrap; gap:var(--sp-sm);">
+        <div>
+          <h2 style="font-family:var(--font-brand); font-size:18px; font-weight:800; margin:0;">
+            📋 Bandeja de Solicitudes y Casos Sociales
+          </h2>
+          <p style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+            Revisión integral de residencia, situación socioeconómica RSH y emisión de informes técnicos.
+          </p>
+        </div>
+        <div style="font-size:12px; color:var(--text-muted);" id="contador-filtrados">
+          Mostrando casos sociales activos
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="tabla-casos-sociales">
+          <thead>
+            <tr>
+              <th>Folio / Fecha</th>
+              <th>Solicitante & RUN</th>
+              <th>Tramo RSH & Familia</th>
+              <th>Motivo Social & JJVV</th>
+              <th>Estado del Caso</th>
+              <th>Respaldos</th>
+              <th style="text-align:right;">Acciones Profesionales</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-casos-sociales">
+            <!-- Renderizado dinámico desde localStorage -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECCIÓN DE INFORMES SOCIALES EMITIDOS -->
+    <div class="card" id="seccion-informes" style="margin-top:var(--sp-2xl);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-lg); flex-wrap:wrap; gap:var(--sp-sm);">
+        <div>
+          <h2 style="font-family:var(--font-brand); font-size:18px; font-weight:800; margin:0;">
+            📑 Registro de Informes Sociales Emitidos
+          </h2>
+          <p style="font-size:13px; color:var(--text-muted); margin-top:2px;">
+            Historial de dictámenes técnicos elaborados por el equipo social municipal con sello de agua demostrativo.
+          </p>
+        </div>
+        <span class="badge" style="background:rgba(124,58,237,0.15); color:#A78BFA; font-weight:700;">
+          Archivador Digital DIDECO
+        </span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Folio Informe</th>
+              <th>Fecha</th>
+              <th>Vecino Evaluado</th>
+              <th>RUN</th>
+              <th>Tramo RSH</th>
+              <th>Dictamen</th>
+              <th>Asistente Social</th>
+              <th style="text-align:right;">Descarga Oficial</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-informes-emitidos">
+            <!-- Render dinámico -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- =======================================================
+     MODAL 1: EMITIR INFORME SOCIAL Y RESOLVER SOLICITUD
+     ======================================================= -->
+<div class="modal-overlay" id="modal-informe-social">
+  <div class="modal-container">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp-lg);">
+      <div>
+        <span class="badge" style="background:rgba(236,72,153,0.15); color:#F472B6; font-size:11px; font-weight:800;">
+          DIDECO · FORMULARIO TÉCNICO
+        </span>
+        <h2 style="font-family:var(--font-brand); font-size:20px; font-weight:800; margin-top:4px;">
+          📝 Emitir Informe Social y Resolución
+        </h2>
+        <p style="font-size:13px; color:var(--text-secondary);" id="modal-inf-subtitulo">
+          Evaluación socioeconómica para el caso
+        </p>
+      </div>
+      <button onclick="cerrarModal('modal-informe-social')" style="background:none; border:none; font-size:22px; color:var(--text-muted); cursor:pointer;">✕</button>
+    </div>
+
+    <!-- Applicant Summary Box -->
+    <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-md); margin-bottom:var(--sp-lg);">
+      <div class="grid-2" style="gap:var(--sp-sm); font-size:13px;">
+        <div><span style="color:var(--text-muted);">Vecino:</span> <strong id="inf-vecino-nombre">—</strong></div>
+        <div><span style="color:var(--text-muted);">RUN:</span> <strong id="inf-vecino-run">—</strong></div>
+        <div><span style="color:var(--text-muted);">Dirección:</span> <span id="inf-vecino-dir">—</span></div>
+        <div><span style="color:var(--text-muted);">Junta de Vecinos:</span> <span id="inf-vecino-jjvv">—</span></div>
+      </div>
+    </div>
+
+    <!-- Form Fields -->
+    <form id="form-emitir-informe" onsubmit="guardarInformeSocial(event)">
+      <input type="hidden" id="inf-folio-req">
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Calificación RSH (% Vulnerabilidad) <span class="req">*</span></label>
+          <select class="form-control" id="inf-rsh-tramo" required>
+            <option value="40% de menores ingresos (Alta vulnerabilidad)" selected>40% de menores ingresos (Tramo social prioritario)</option>
+            <option value="50% de menores ingresos">50% de menores ingresos</option>
+            <option value="60% de menores ingresos">60% de menores ingresos</option>
+            <option value="70% de ingresos medios">70% de ingresos medios</option>
+            <option value="80% o superior">80% o superior</option>
+            <option value="Sin Registro Social de Hogares">Sin Registro Social de Hogares activo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Composición Familiar <span class="req">*</span></label>
+          <input type="text" class="form-control" id="inf-familia" placeholder="Ej: 4 integrantes (Madre jefa de hogar + 3 hijos)" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo de Tenencia de Vivienda <span class="req">*</span></label>
+          <select class="form-control" id="inf-tenencia" required>
+            <option value="Allegada en vivienda familiar" selected>Allegada en vivienda familiar</option>
+            <option value="Arrendataria con contrato">Arrendataria con contrato</option>
+            <option value="Vivienda propia sin subsidio previo">Vivienda propia sin subsidio previo</option>
+            <option value="Vivienda cedida en comunidad / rural">Vivienda cedida en comunidad / rural</option>
+            <option value="Arriendo informal / subarriendo">Arriendo informal / subarriendo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tiempo de Residencia en la Comuna <span class="req">*</span></label>
+          <input type="text" class="form-control" id="inf-tiempo" value="Más de 3 años continuos en PLC" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Síntesis y Diagnóstico Social Profesional <span class="req">*</span></label>
+        <textarea
+          class="form-control"
+          id="inf-diagnostico"
+          rows="3"
+          placeholder="Describa las condiciones habitacionales observadas, solvencia familiar, necesidad del subsidio o beca y acreditación de residencia efectiva..."
+          required
+        >Se constata residencia efectiva en el inmueble indicado. El grupo familiar presenta vulnerabilidad socioeconómica y cumple con arraigo comunal demostrado mediante documentación y entrevista.</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Conclusión Técnica y Dictamen DIDECO <span class="req">*</span></label>
+        <select class="form-control" id="inf-conclusion" required>
+          <option value="FAVORABLE — Procede otorgamiento de Certificado y Beneficio Social" selected>✓ FAVORABLE — Procede otorgamiento de Certificado y Beneficio Social</option>
+          <option value="FAVORABLE CONDICIONADO — Requiere actualización de RSH en 60 días">⚠️ FAVORABLE CONDICIONADO — Requiere actualización de RSH en 60 días</option>
+          <option value="DESFAVORABLE — Antecedentes contradictorios de domicilio">❌ DESFAVORABLE — Antecedentes contradictorios de domicilio</option>
+        </select>
+      </div>
+
+      <div style="background:rgba(0,212,232,0.06); border:1px solid rgba(0,212,232,0.25); border-radius:var(--r-md); padding:12px; margin-bottom:var(--sp-xl);">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:13.5px;">
+          <input type="checkbox" id="inf-aprobar-cert" checked style="accent-color:var(--accent-cyan); width:18px; height:18px;">
+          <span><strong>Aprobar y emitir simultáneamente el Certificado de Residencia Social</strong> con número de folio oficial.</span>
+        </label>
+      </div>
+
+      <div style="display:flex; gap:var(--sp-md); justify-content:flex-end;">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModal('modal-informe-social')">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-guardar-informe">
+          💾 Emitir Informe y Aprobar Caso →
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =======================================================
+     MODAL 2: VISUALIZACIÓN DE DOCUMENTOS DE RESPALDO
+     ======================================================= -->
+<div class="modal-overlay" id="modal-ver-respaldos">
+  <div class="modal-container">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp-lg);">
+      <div>
+        <span class="badge" style="background:rgba(0,212,232,0.15); color:var(--accent-cyan); font-size:11px; font-weight:800;">EXPEDIENTE DIGITAL</span>
+        <h2 style="font-family:var(--font-brand); font-size:20px; font-weight:800; margin-top:4px;" id="modal-resp-titulo">
+          📁 Documentos de Respaldo del Solicitante
+        </h2>
+      </div>
+      <button onclick="cerrarModal('modal-ver-respaldos')" style="background:none; border:none; font-size:22px; color:var(--text-muted); cursor:pointer;">✕</button>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:var(--r-lg); padding:var(--sp-md); margin-bottom:var(--sp-lg);">
+      <div id="modal-resp-info" style="font-size:13.5px; line-height:1.6;"></div>
+    </div>
+
+    <div style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:var(--sp-sm);">
+      Archivos Adjuntos Subidos por el Vecino
+    </div>
+    <div id="modal-resp-lista">
+      <!-- Lista de archivos -->
+    </div>
+
+    <div style="margin-top:var(--sp-xl); text-align:right;">
+      <button class="btn btn-primary" onclick="cerrarModal('modal-ver-respaldos')">Cerrar Visor</button>
+    </div>
+  </div>
+</div>
+
+<!-- =======================================================
+     MODAL 3: AGENDAR VISITA A TERRENO
+     ======================================================= -->
+<div class="modal-overlay" id="modal-agendar-visita">
+  <div class="modal-container" style="max-width:520px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp-lg);">
+      <div>
+        <span class="badge" style="background:rgba(59,123,248,0.15); color:var(--accent-blue); font-size:11px; font-weight:800;">TERRENO DIDECO</span>
+        <h2 style="font-family:var(--font-brand); font-size:20px; font-weight:800; margin-top:4px;">
+          🏠 Agendar Visita a Terreno
+        </h2>
+      </div>
+      <button onclick="cerrarModal('modal-agendar-visita')" style="background:none; border:none; font-size:22px; color:var(--text-muted); cursor:pointer;">✕</button>
+    </div>
+
+    <form onsubmit="guardarVisitaSocial(event)">
+      <input type="hidden" id="visita-folio-req">
+
+      <div class="form-group">
+        <label class="form-label">Fecha de la Visita <span class="req">*</span></label>
+        <input type="date" class="form-control" id="visita-fecha" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Asistente Social Responsable <span class="req">*</span></label>
+        <input type="text" class="form-control" id="visita-profesional" value="Lic. Camila San Martín Valenzuela" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Objetivo de la Inspección Habitacional</label>
+        <textarea class="form-control" id="visita-obs" rows="2" placeholder="Ej: Constatación de situación de allegamiento y corroboración de deslindes...">Verificación en terreno de domicilio efectivo y condiciones de habitabilidad para trámite de subsidio.</textarea>
+      </div>
+
+      <div style="display:flex; gap:var(--sp-md); justify-content:flex-end; margin-top:var(--sp-xl);">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModal('modal-agendar-visita')">Cancelar</button>
+        <button type="submit" class="btn btn-primary">📅 Confirmar y Agendar Visita</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =======================================================
+     MODAL 4: RECHAZAR SOLICITUD CON MOTIVO SOCIAL
+     ======================================================= -->
+<div class="modal-overlay" id="modal-rechazo-social">
+  <div class="modal-container" style="max-width:520px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:var(--sp-lg);">
+      <div>
+        <span class="badge" style="background:rgba(239,68,68,0.15); color:var(--danger); font-size:11px; font-weight:800;">DICTAMEN NEGATIVO</span>
+        <h2 style="font-family:var(--font-brand); font-size:20px; font-weight:800; margin-top:4px;">
+          ❌ Rechazar Solicitud
+        </h2>
+      </div>
+      <button onclick="cerrarModal('modal-rechazo-social')" style="background:none; border:none; font-size:22px; color:var(--text-muted); cursor:pointer;">✕</button>
+    </div>
+
+    <form onsubmit="ejecutarRechazoSocial(event)">
+      <input type="hidden" id="rechazo-folio-req">
+
+      <div class="form-group">
+        <label class="form-label">Motivo Obligatorio del Rechazo <span class="req">*</span></label>
+        <textarea
+          class="form-control"
+          id="rechazo-motivo-social"
+          rows="4"
+          placeholder="Indique con claridad las razones por las cuales no se otorga el certificado (ej: el domicilio acreditado no coincide con el RSH comunal, falta de comprobantes vigentes)..."
+          required
+        ></textarea>
+        <div style="font-size:11.5px; color:var(--text-muted); margin-top:4px;">
+          Este motivo se registrará de forma permanente en la auditoría municipal y se notificará al vecino para su corrección.
+        </div>
+      </div>
+
+      <div style="display:flex; gap:var(--sp-md); justify-content:flex-end; margin-top:var(--sp-xl);">
+        <button type="button" class="btn btn-ghost" onclick="cerrarModal('modal-rechazo-social')">Cancelar</button>
+        <button type="submit" class="btn btn-danger">Confirmar Rechazo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JAVASCRIPT DEL PANEL SOCIAL -->
+<script>
+  let listaCasos = [];
+  let currentUserSocial = null;
+  let filtroEstadoActual = 'todos';
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+
+  function cerrarModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('open');
+  }
+
+  function abrirModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('open');
+  }
+
+  // Carga inicial
+  window.addEventListener('DOMContentLoaded', () => {
+    // Validar usuario
+    currentUserSocial = VeciAuth.getCurrentUser();
+    if (!currentUserSocial || currentUserSocial.rol !== 'social') {
+      const socialUser = VeciDB.getUserByEmail('social@padrelascasas.cl');
+      if (socialUser) {
+        VeciAuth.setCurrentUser(socialUser);
+        currentUserSocial = socialUser;
+      }
+    }
+
+    recargarBandejaSocial();
+
+    // Sincronizar fecha por defecto en agendamiento
+    const hoy = new Date();
+    hoy.setDate(hoy.getDate() + 3);
+    const fechaInput = document.getElementById('visita-fecha');
+    if (fechaInput) fechaInput.value = hoy.toISOString().split('T')[0];
+
+    // Inicializar barra de pruebas
+    if (typeof initVeciAyudaTesterBar === 'function') {
+      initVeciAyudaTesterBar();
+    }
+  });
+
+  function recargarBandejaSocial() {
+    const db = VeciDB.get();
+    // Filtramos casos de relevancia social
+    listaCasos = db.requests || [];
+
+    actualizarEstadisticas();
+    filtrarCasos();
+    renderizarInformesEmitidos();
+  }
+
+  function actualizarEstadisticas() {
+    const pendientes = listaCasos.filter(c => c.estado === 'en_revision' || c.estado === 'pendiente').length;
+    const informes = listaCasos.filter(c => c.informeSocialFolio || c.informeSocial).length;
+    const visitas = listaCasos.filter(c => c.visitaSocial && c.visitaSocial.includes('Programada')).length;
+    const aprobados = listaCasos.filter(c => c.estado === 'aprobado').length;
+
+    document.getElementById('stat-pendientes').textContent = pendientes;
+    document.getElementById('stat-informes').textContent = informes;
+    document.getElementById('stat-visitas').textContent = visitas;
+    document.getElementById('stat-aprobados').textContent = aprobados;
+
+    const badgeTotal = document.getElementById('badge-total-casos');
+    if (badgeTotal) badgeTotal.textContent = pendientes;
+  }
+
+  function filtrarEstadoSocial(estado) {
+    filtroEstadoActual = estado;
+    document.getElementById('filtro-estado-select').value = estado;
+    filtrarCasos();
+  }
+
+  function filtrarCasos() {
+    const query = (document.getElementById('filtro-busqueda').value || '').trim().toLowerCase();
+    const programa = document.getElementById('filtro-programa').value;
+    const estado = document.getElementById('filtro-estado-select').value;
+
+    const filtrados = listaCasos.filter(caso => {
+      // Búsqueda libre
+      const matchQuery = !query ||
+        (caso.folio || '').toLowerCase().includes(query) ||
+        (caso.vecinoNombre || '').toLowerCase().includes(query) ||
+        (caso.vecinoRun || '').toLowerCase().includes(query) ||
+        (caso.jjvvNombre || '').toLowerCase().includes(query) ||
+        (caso.motivo || '').toLowerCase().includes(query);
+
+      // Programa social
+      let matchPrograma = true;
+      if (programa !== 'todos') {
+        matchPrograma = (caso.motivo || '').toLowerCase().includes(programa.toLowerCase()) ||
+                        (caso.tipoCertificadoNombre || '').toLowerCase().includes(programa.toLowerCase());
+      }
+
+      // Estado
+      let matchEstado = true;
+      if (estado === 'visita') {
+        matchEstado = !!(caso.visitaSocial && caso.visitaSocial.includes('Programada'));
+      } else if (estado !== 'todos') {
+        matchEstado = caso.estado === estado;
+      }
+
+      return matchQuery && matchPrograma && matchEstado;
+    });
+
+    renderizarTablaCasos(filtrados);
+    document.getElementById('contador-filtrados').textContent = `${filtrados.length} caso(s) encontrado(s)`;
+  }
+
+  function renderizarTablaCasos(casos) {
+    const tbody = document.getElementById('tbody-casos-sociales');
+    if (!casos || casos.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align:center; padding:36px; color:var(--text-muted);">
+            <div style="font-size:32px; margin-bottom:8px;">🔍</div>
+            <div>No se encontraron casos con los filtros aplicados.</div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = casos.map(caso => {
+      // Insignia de estado
+      let badgeEstado = '';
+      if (caso.estado === 'aprobado') {
+        badgeEstado = '<span class="badge badge-resolved">✓ Aprobado con Certificado</span>';
+      } else if (caso.estado === 'rechazado') {
+        badgeEstado = '<span class="badge badge-danger">✕ Rechazado</span>';
+      } else if (caso.visitaSocial && caso.visitaSocial.includes('Programada')) {
+        badgeEstado = '<span class="badge" style="background:rgba(59,123,248,0.15); color:#60A5FA;">🏠 Visita Programada</span>';
+      } else {
+        badgeEstado = '<span class="badge badge-in-review">⏳ En Evaluación Social</span>';
+      }
+
+      // Insignia de RSH
+      const rshText = caso.rshTramo || '40% de menores ingresos';
+      let rshBadgeClass = 'badge-rsh-40';
+      if (rshText.includes('60%')) rshBadgeClass = 'badge-rsh-60';
+      else if (rshText.includes('80%')) rshBadgeClass = 'badge-rsh-80';
+
+      const familia = caso.grupoFamiliar || 'Familia unipersonal / En evaluación';
+      const adjuntosCount = caso.adjuntos ? caso.adjuntos.length : 1;
+      const tieneInforme = !!(caso.informeSocialFolio || caso.informeSocial);
+      const tieneCert = !!(caso.folioCertificado);
+
+      return `
+        <tr>
+          <td>
+            <div style="font-family:monospace; font-weight:800; font-size:12.5px; color:var(--accent-cyan);">${caso.folio}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${caso.fechaSolicitud || '2024-11-21'}</div>
+          </td>
+          <td>
+            <div style="font-weight:700; font-size:13.5px;">${caso.vecinoNombre}</div>
+            <div style="font-family:monospace; font-size:12px; color:var(--text-muted);">${caso.vecinoRun}</div>
+            <div style="font-size:11.5px; color:var(--text-secondary);">${caso.direccion || 'Padre Las Casas'}</div>
+          </td>
+          <td>
+            <span class="social-badge ${rshBadgeClass}">${rshText}</span>
+            <div style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">👥 ${familia}</div>
+          </td>
+          <td>
+            <div style="font-weight:600; font-size:13px; color:var(--text-primary);">${caso.motivo}</div>
+            <div style="font-size:11.5px; color:var(--accent-cyan);">🏘️ ${caso.jjvvNombre || 'Sector Comunal'}</div>
+          </td>
+          <td>
+            ${badgeEstado}
+            ${caso.visitaSocial ? `<div style="font-size:11px; color:var(--text-muted); margin-top:3px;">📅 ${caso.visitaSocial}</div>` : ''}
+          </td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="abrirVerRespaldos('${caso.folio}')" style="font-size:11.5px; padding:4px 8px;">
+              📎 ${adjuntosCount} doc(s)
+            </button>
+          </td>
+          <td style="text-align:right;">
+            <div style="display:inline-flex; gap:4px; flex-wrap:wrap; justify-content:flex-end;">
+              ${!tieneCert ? `
+                <button class="btn btn-primary btn-sm" onclick="abrirModalInforme('${caso.folio}')" style="font-size:12px; padding:6px 10px; background:#EC4899; border-color:#EC4899;" title="Evaluar y resolver">
+                  📝 Evaluar & Aprobar
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="abrirAgendarVisita('${caso.folio}')" style="font-size:12px; padding:6px 8px;" title="Agendar visita a terreno">
+                  🏠 Visita
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="abrirModalRechazo('${caso.folio}')" style="font-size:12px; padding:6px 8px;" title="Rechazar">
+                  ✕
+                </button>
+              ` : `
+                <button class="btn btn-ghost btn-sm" onclick="VeciPDF.openSocialReportView('${caso.informeSocialFolio || caso.folio}')" style="font-size:12px; padding:6px 8px; color:#A78BFA; border-color:rgba(124,58,237,0.3);" title="Descargar Informe Social Oficial">
+                  📑 Informe DIDECO
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="VeciPDF.openPrintView('${caso.folioCertificado}')" style="font-size:12px; padding:6px 10px;" title="Descargar Certificado de Residencia">
+                  📜 Certificado PDF
+                </button>
+              `}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderizarInformesEmitidos() {
+    const tbody = document.getElementById('tbody-informes-emitidos');
+    const informesCasos = listaCasos.filter(c => c.informeSocialFolio || c.informeSocial);
+
+    if (informesCasos.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" style="text-align:center; padding:24px; color:var(--text-muted);">
+            No hay informes emitidos registrados aún.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    tbody.innerHTML = informesCasos.map(c => {
+      const inf = c.informeSocial || {
+        folio: c.informeSocialFolio || 'PLC-INF-SOC-2024-00128',
+        fecha: c.fechaResolucion || '2024-11-12',
+        conclusion: 'FAVORABLE'
+      };
+
+      return `
+        <tr>
+          <td><strong style="font-family:monospace; color:#A78BFA;">${inf.folio}</strong></td>
+          <td style="font-size:12.5px;">${inf.fecha}</td>
+          <td style="font-weight:700;">${c.vecinoNombre}</td>
+          <td style="font-family:monospace; font-size:12px;">${c.vecinoRun}</td>
+          <td><span class="social-badge badge-rsh-40">${c.rshTramo || '40%'}</span></td>
+          <td><span class="badge badge-resolved">${inf.conclusion ? inf.conclusion.split('—')[0] : 'FAVORABLE'}</span></td>
+          <td style="font-size:12px; color:var(--text-secondary);">${inf.asistenteSocial || 'Lic. Camila San Martín'}</td>
+          <td style="text-align:right;">
+            <button class="btn btn-ghost btn-sm" onclick="VeciPDF.openSocialReportView('${inf.folio}')" style="color:#A78BFA; border-color:rgba(124,58,237,0.4);">
+              🖨️ Descargar Informe PDF
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Acciones en modales
+  function abrirModalInforme(folio) {
+    const req = listaCasos.find(r => r.folio === folio);
+    if (!req) return;
+
+    document.getElementById('inf-folio-req').value = folio;
+    document.getElementById('modal-inf-subtitulo').textContent = `Caso Folio: ${folio} · Trámite: ${req.motivo}`;
+    document.getElementById('inf-vecino-nombre').textContent = req.vecinoNombre;
+    document.getElementById('inf-vecino-run').textContent = req.vecinoRun;
+    document.getElementById('inf-vecino-dir').textContent = req.direccion || 'Padre Las Casas';
+    document.getElementById('inf-vecino-jjvv').textContent = req.jjvvNombre || 'Sector Comunal';
+    document.getElementById('inf-familia').value = req.grupoFamiliar || '4 integrantes (Madre jefa de hogar + 3 hijos)';
+
+    abrirModal('modal-informe-social');
+  }
+
+  function guardarInformeSocial(e) {
+    e.preventDefault();
+    const folio = document.getElementById('inf-folio-req').value;
+    const tramoRsh = document.getElementById('inf-rsh-tramo').value;
+    const grupoFamiliar = document.getElementById('inf-familia').value.trim();
+    const tipoTenencia = document.getElementById('inf-tenencia').value;
+    const tiempoPLC = document.getElementById('inf-tiempo').value.trim();
+    const diagnostico = document.getElementById('inf-diagnostico').value.trim();
+    const conclusion = document.getElementById('inf-conclusion').value;
+    const aprobar = document.getElementById('inf-aprobar-cert').checked;
+
+    const btn = document.getElementById('btn-guardar-informe');
+    btn.textContent = '⏳ Emitiendo y firmando...';
+    btn.disabled = true;
+
+    try {
+      const socialUser = currentUserSocial || VeciAuth.getCurrentUser();
+      const res = VeciDB.emitirInformeSocial(folio, {
+        tramoRsh,
+        grupoFamiliar,
+        tipoTenencia,
+        tiempoPLC,
+        diagnostico,
+        conclusion,
+        aprobar
+      }, socialUser);
+
+      cerrarModal('modal-informe-social');
+      btn.textContent = '💾 Emitir Informe y Aprobar Caso →';
+      btn.disabled = false;
+
+      VeciUI.toast(`✅ ¡Informe Social ${res.informe.folio} emitido exitosamente! Se genera vista imprimible.`, 'success');
+
+      recargarBandejaSocial();
+
+      // Abrir vista previa del informe social
+      VeciPDF.openSocialReportView(res.informe.folio);
+    } catch (err) {
+      VeciUI.toast('Error al emitir informe: ' + err.message, 'danger');
+      btn.textContent = '💾 Emitir Informe y Aprobar Caso →';
+      btn.disabled = false;
+    }
+  }
+
+  function abrirVerRespaldos(folio) {
+    const req = listaCasos.find(r => r.folio === folio);
+    if (!req) return;
+
+    document.getElementById('modal-resp-titulo').textContent = `Expediente: ${req.folio}`;
+    document.getElementById('modal-resp-info').innerHTML = `
+      <div><strong>Vecino:</strong> ${req.vecinoNombre} (${req.vecinoRun})</div>
+      <div><strong>Motivo:</strong> ${req.motivo}</div>
+      <div><strong>Dirección:</strong> ${req.direccion}</div>
+      <div><strong>Junta de Vecinos:</strong> ${req.jjvvNombre}</div>
+      <div><strong>Calificación RSH:</strong> <span class="social-badge badge-rsh-40">${req.rshTramo || '40%'}</span></div>
+    `;
+
+    const adjuntos = req.adjuntos || [
+      { nombre: 'cartola_rsh_nov2024.pdf', tipo: 'Cartola Hogar RSH', size: '1.4 MB' },
+      { nombre: 'boleta_cge_luz.pdf', tipo: 'Boleta de Servicios', size: '1.1 MB' }
+    ];
+
+    document.getElementById('modal-resp-lista').innerHTML = adjuntos.map(a => `
+      <div class="doc-preview-pill">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:22px;">📄</span>
+          <div>
+            <div style="font-weight:700; font-size:13.5px;">${a.nombre}</div>
+            <div style="font-size:11px; color:var(--text-muted);">${a.tipo} · ${a.size} · Cotejado con servidor municipal</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="VeciUI.openDocViewer(currentSocialReq ? currentSocialReq.folio : 'CERT-REQ-2024-089', 0, 'social')" style="font-size:12px;">
+          👁️ Ver Documento
+        </button>
+      </div>
+    `).join('');
+
+    abrirModal('modal-ver-respaldos');
+  }
+
+  function abrirAgendarVisita(folio) {
+    document.getElementById('visita-folio-req').value = folio;
+    abrirModal('modal-agendar-visita');
+  }
+
+  function guardarVisitaSocial(e) {
+    e.preventDefault();
+    const folio = document.getElementById('visita-folio-req').value;
+    const fecha = document.getElementById('visita-fecha').value;
+    const profesional = document.getElementById('visita-profesional').value.trim();
+    const obs = document.getElementById('visita-obs').value.trim();
+
+    try {
+      VeciDB.agendarVisitaSocial(folio, fecha, profesional, obs);
+      cerrarModal('modal-agendar-visita');
+      VeciUI.toast(`🏠 Visita a terreno agendada correctamente para el día ${fecha}.`, 'success');
+      recargarBandejaSocial();
+    } catch (err) {
+      VeciUI.toast('Error: ' + err.message, 'danger');
+    }
+  }
+
+  function abrirModalRechazo(folio) {
+    document.getElementById('rechazo-folio-req').value = folio;
+    document.getElementById('rechazo-motivo-social').value = '';
+    abrirModal('modal-rechazo-social');
+  }
+
+  function ejecutarRechazoSocial(e) {
+    e.preventDefault();
+    const folio = document.getElementById('rechazo-folio-req').value;
+    const motivo = document.getElementById('rechazo-motivo-social').value.trim();
+
+    if (!motivo) {
+      VeciUI.toast('El motivo del rechazo es obligatorio para la trazabilidad municipal.', 'warning');
+      return;
+    }
+
+    try {
+      const socialUser = currentUserSocial || VeciAuth.getCurrentUser();
+      VeciDB.rejectRequest(folio, socialUser, motivo);
+      cerrarModal('modal-rechazo-social');
+      VeciUI.toast('Solicitud rechazada con motivo técnico registrado.', 'info');
+      recargarBandejaSocial();
+    } catch (err) {
+      VeciUI.toast('Error: ' + err.message, 'danger');
+    }
+  }
+
+  function mostrarSeccion(sec) {
+    if (sec === 'informes') {
+      const el = document.getElementById('seccion-informes');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+</script>
+</body>
+</html>

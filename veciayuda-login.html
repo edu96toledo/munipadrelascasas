@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión — VeciAyuda | Municipalidad Padre Las Casas</title>
+  <meta name="description" content="Accede a tu cuenta VeciAyuda como vecino, Junta de Vecinos o administración municipal.">
+  <link rel="stylesheet" href="style.css">
+  <script src="veciayuda-core.js"></script>
+  <style>
+    /* ===== LOGIN VECIAYUDA ===== */
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: stretch;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ---- LEFT PANEL ---- */
+    .login-left {
+      flex: 1;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: var(--sp-3xl);
+      position: relative;
+      overflow: hidden;
+    }
+    .login-left-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(0,212,232,0.07) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 80%, rgba(124,58,237,0.05) 0%, transparent 50%);
+    }
+    .login-visual {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 420px;
+    }
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--r-xl);
+      background: var(--gradient-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin: 0 auto var(--sp-xl);
+      box-shadow: 0 0 40px rgba(0,212,232,0.3);
+    }
+    .login-tagline {
+      font-family: var(--font-brand);
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: var(--sp-md);
+    }
+    .login-desc {
+      font-size: 15px;
+      color: var(--text-secondary);
+      line-height: 1.65;
+      margin-bottom: var(--sp-2xl);
+    }
+    .stat-mini {
+      display: flex;
+      gap: var(--sp-xl);
+      justify-content: center;
+      margin-bottom: var(--sp-2xl);
+    }
+    .sm-item { text-align: center; }
+    .sm-val {
+      font-family: var(--font-brand);
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent-cyan);
+    }
+    .sm-lab { font-size: 12px; color: var(--text-muted); }
+
+    /* Floating info card */
+    .login-info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: var(--sp-lg);
+      text-align: left;
+      animation: float1 5s ease-in-out infinite;
+      max-width: 340px;
+      margin: 0 auto;
+    }
+    .role-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--r-full);
+      font-size: 12px;
+      font-weight: 600;
+      margin: 3px 0;
+    }
+    .role-pill.vecino    { background: rgba(0,212,232,0.12);  color: var(--accent-cyan); }
+    .role-pill.jjvv      { background: rgba(59,123,248,0.12); color: var(--accent-blue); }
+    .role-pill.municipal { background: rgba(124,58,237,0.12); color: var(--accent-purple); }
+
+    /* ---- RIGHT PANEL ---- */
+    .login-right {
+      width: 500px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: var(--sp-3xl) var(--sp-2xl);
+      position: relative;
+      z-index: 1;
+      overflow-y: auto;
+    }
+
+    /* Role tabs */
+    .role-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: var(--sp-sm);
+      margin-bottom: var(--sp-xl);
+    }
+    .role-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      padding: var(--sp-md) var(--sp-sm);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-lg);
+      cursor: pointer;
+      transition: all var(--transition);
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: rgba(255,255,255,0.02);
+      user-select: none;
+    }
+    .role-tab:hover {
+      border-color: var(--border-hover);
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.04);
+    }
+    .role-tab.active {
+      color: var(--accent-cyan);
+      background: rgba(0,212,232,0.08);
+      box-shadow: 0 0 0 3px rgba(0,212,232,0.1);
+    }
+    .role-tab.active.jjvv-tab {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      background: rgba(59,123,248,0.08);
+      box-shadow: 0 0 0 3px rgba(59,123,248,0.1);
+    }
+    .role-tab.active.muni-tab {
+      border-color: var(--accent-purple);
+      color: var(--accent-purple);
+      background: rgba(124,58,237,0.08);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+    }
+    .role-tab-icon { font-size: 24px; }
+    .role-tab-label { font-size: 12px; }
+
+    /* Divider OR */
+    .divider-or {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+      margin: var(--sp-lg) 0;
+    }
+    .divider-or::before, .divider-or::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .divider-or span {
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* Pass toggle */
+    .pass-wrap {
+      position: relative;
+    }
+    .pass-toggle-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      padding: 4px;
+      transition: color 0.2s;
+    }
+    .pass-toggle-btn:hover { color: var(--text-primary); }
+
+    /* Btn login */
+    .btn-login {
+      min-height: 52px;
+      font-size: 16px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .form-label {
+      font-size: 14px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 600;
+    }
+    .form-control {
+      font-size: 16px;
+      padding: 14px 16px;
+    }
+
+    /* Security footer */
+    .security-info {
+      margin-top: var(--sp-xl);
+      padding-top: var(--sp-lg);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-sm);
+    }
+    .security-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-sm);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .security-item span { flex-shrink: 0; }
+
+    @media (max-width: 1024px) {
+      .login-left { display: none; }
+      .login-right { width: 100%; max-width: 520px; margin: 0 auto; }
+    }
+    @media (max-width: 768px) {
+      .login-right { padding: var(--sp-xl) var(--sp-md); }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<div class="login-page">
+
+  <!-- ===== LEFT PANEL ===== -->
+  <div class="login-left">
+    <div class="login-left-bg"></div>
+    <div class="login-visual">
+      <div class="login-logo">🏛️</div>
+      <h1 class="login-tagline">
+        VeciAyuda<br>
+        <span class="gradient-text">Municipalidad</span>
+      </h1>
+      <p class="login-desc">
+        Plataforma digital para la emisión y verificación de certificados de residencia en la comuna de Padre Las Casas, Región de La Araucanía.
+      </p>
+
+      <div class="stat-mini">
+        <div class="sm-item">
+          <div class="sm-val">2.847</div>
+          <div class="sm-lab">Certificados</div>
+        </div>
+        <div class="sm-item">
+          <div class="sm-val">98%</div>
+          <div class="sm-lab">Autenticidad</div>
+        </div>
+        <div class="sm-item">
+          <div class="sm-val">3 días</div>
+          <div class="sm-lab">Promedio</div>
+        </div>
+      </div>
+
+      <!-- Info Card -->
+      <div class="login-info-card">
+        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-muted); margin-bottom:var(--sp-md);">Acceso por tipo de usuario</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div class="role-pill vecino">🏠 Vecino — Solicitar certificados</div>
+          <div class="role-pill jjvv">🏘️ JJVV — Revisar y aprobar solicitudes</div>
+          <div class="role-pill municipal">🏛️ Municipal — Administrar plataforma</div>
+        </div>
+        <div style="margin-top:var(--sp-md); font-size:12px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:var(--sp-sm);">
+          🔐 Acceso seguro · Sesión cifrada TLS 1.3
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RIGHT PANEL ===== -->
+  <div class="login-right">
+    <div>
+      <!-- Back link -->
+      <a href="veciayuda-landing.html" style="color:var(--text-muted); text-decoration:none; font-size:13px; display:inline-flex; align-items:center; gap:6px; margin-bottom:var(--sp-xl);">← Volver al inicio</a>
+
+      <h2 style="font-family:var(--font-brand); font-size:26px; font-weight:800; margin-bottom:var(--sp-sm);">Ingresar a VeciAyuda</h2>
+      <p style="font-size:14px; color:var(--text-secondary); margin-bottom:var(--sp-lg);">Selecciona tu tipo de acceso e ingresa tus credenciales.</p>
+
+      <!-- ACCESOS RÁPIDOS DE PRUEBA (1 CLIC) -->
+      <div style="background: rgba(0,212,232,0.06); border: 1.5px solid rgba(0,212,232,0.25); border-radius: var(--r-xl); padding: var(--sp-md); margin-bottom: var(--sp-xl);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:11px; font-weight:800; text-transform:uppercase; color:var(--accent-cyan); letter-spacing:0.06em;">⚡ Cuentas de Prueba (Ingreso en 1 Clic)</span>
+          <span class="badge" style="background:rgba(16,185,129,0.15); color:var(--success); font-size:10px;">Persistente</span>
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="quickFill('admin@padrelascasas.cl', 'admin', 'municipal')" style="font-size:12px; justify-content:flex-start; padding:8px 10px;">
+            🛡️ Admin General
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="quickFill('social@padrelascasas.cl', 'admin', 'municipal')" style="font-size:12px; justify-content:flex-start; padding:8px 10px; border-color: rgba(236,72,153,0.4); color: #F472B6;">
+            🤝 Asistente Social DIDECO
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="quickFill('funcionario@padrelascasas.cl', 'admin', 'municipal')" style="font-size:12px; justify-content:flex-start; padding:8px 10px;">
+            👤 Funcionario Comunitario
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="quickFill('juan.perez@jjvv.cl', 'admin', 'jjvv')" style="font-size:12px; justify-content:flex-start; padding:8px 10px;">
+            🏘️ Presidente JJVV
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="quickFill('maria.rodriguez@gmail.com', 'admin', 'vecino')" style="font-size:12px; justify-content:flex-start; padding:8px 10px; grid-column: span 2;">
+            🏠 Vecina Solicitante (María Rodríguez)
+          </button>
+        </div>
+      </div>
+
+      <!-- Role Tabs -->
+      <div style="font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:var(--sp-sm); text-transform:uppercase; letter-spacing:0.06em; font-size:11px;">Tipo de acceso</div>
+      <div class="role-tabs" id="role-tabs">
+        <div class="role-tab active" id="tab-vecino" onclick="seleccionarRol('vecino')">
+          <span class="role-tab-icon">🏠</span>
+          <span class="role-tab-label">Vecino</span>
+        </div>
+        <div class="role-tab jjvv-tab" id="tab-jjvv" onclick="seleccionarRol('jjvv')">
+          <span class="role-tab-icon">🏘️</span>
+          <span class="role-tab-label">JJVV</span>
+        </div>
+        <div class="role-tab muni-tab" id="tab-muni" onclick="seleccionarRol('municipal')">
+          <span class="role-tab-icon">🏛️</span>
+          <span class="role-tab-label">Municipal</span>
+        </div>
+      </div>
+
+      <!-- Context hint -->
+      <div id="role-hint" class="alert alert-info" style="margin-bottom:var(--sp-lg); font-size:13px;">
+        <span class="alert-icon">🏠</span>
+        <div>Acceso para <strong>vecinos</strong>: ingresa con tu RUN o correo para solicitar y gestionar tus certificados de residencia.</div>
+      </div>
+
+      <!-- Form -->
+      <div class="form-group">
+        <label class="form-label" for="login-id" id="login-id-label">RUN o correo electrónico</label>
+        <input
+          type="text"
+          class="form-control"
+          id="login-id"
+          placeholder="Ej: 12847391-5 o tu@correo.cl"
+          autocomplete="username"
+        >
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Contraseña</span>
+          <a href="#" style="font-size:12px; color:var(--accent-cyan); text-decoration:none; font-weight:400; text-transform:none; letter-spacing:0;">¿Olvidaste tu contraseña?</a>
+        </label>
+        <div class="pass-wrap">
+          <input
+            type="password"
+            class="form-control"
+            id="login-pass"
+            placeholder="••••••••"
+            style="padding-right:48px;"
+            autocomplete="current-password"
+          >
+          <button type="button" class="pass-toggle-btn" onclick="toggleLoginPass()" title="Mostrar contraseña">👁</button>
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:var(--sp-sm); margin-bottom:var(--sp-xl);">
+        <input type="checkbox" id="remember" style="accent-color:var(--accent-cyan); width:16px; height:16px; cursor:pointer;">
+        <label for="remember" style="font-size:13px; color:var(--text-secondary); cursor:pointer;">Mantener sesión iniciada</label>
+      </div>
+
+      <!-- Error mensaje -->
+      <div id="login-error" class="alert alert-danger" style="display:none; margin-bottom:var(--sp-md);">
+        <span class="alert-icon">❌</span>
+        <div>Credenciales inválidas. Verifica tu RUN o correo y contraseña.</div>
+      </div>
+
+      <!-- Login button -->
+      <button class="btn btn-primary btn-login" id="btn-login" onclick="ingresar()">
+        Ingresar →
+      </button>
+
+      <!-- Divider -->
+      <div class="divider-or"><span>¿Eres nuevo en VeciAyuda?</span></div>
+
+      <div style="text-align:center;">
+        <a href="veciayuda-registro.html" class="btn btn-ghost w-full" style="justify-content:center; font-size:14px;">
+          👤 Crear cuenta de vecino
+        </a>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:var(--sp-md);">
+          El registro de JJVV y funcionarios municipales se realiza a través de la Municipalidad de Padre Las Casas.
+          <a href="#" style="color:var(--accent-cyan); text-decoration:none;">Más información →</a>
+        </p>
+      </div>
+
+      <!-- Security footer -->
+      <div class="security-info">
+        <div class="security-item">
+          <span>🔒</span>
+          <span>Conexión cifrada con TLS 1.3 — tus datos viajan de forma segura</span>
+        </div>
+        <div class="security-item">
+          <span>🏛️</span>
+          <span>Plataforma oficial de la Municipalidad de Padre Las Casas © 2024</span>
+        </div>
+        <div class="security-item">
+          <span>⚖️</span>
+          <span>Protección de datos personales según Ley N° 19.628</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  /* ===== ESTADO DEL LOGIN ===== */
+  let rolSeleccionado = 'vecino';
+
+  /* Redireccionamiento según rol */
+  const redirectMap = {
+    vecino:   'veciayuda-vecino.html',
+    jjvv:     'veciayuda-jjvv.html',
+    municipal:'veciayuda-admin.html'
+  };
+
+  const roleHints = {
+    vecino: {
+      icon: '🏠',
+      msg: 'Acceso para <strong>vecinos</strong>: ingresa con tu RUN o correo para solicitar y gestionar tus certificados de residencia.',
+      class: 'alert-info',
+      placeholder: 'Ej: 12847391-5 o tu@correo.cl',
+      label: 'RUN o correo electrónico'
+    },
+    jjvv: {
+      icon: '🏘️',
+      msg: 'Acceso para <strong>Juntas de Vecinos</strong>: ingresa con tu correo institucional para revisar y aprobar solicitudes de tu comunidad.',
+      class: 'alert-info',
+      placeholder: 'presidente@jjvvvillalospinos.cl',
+      label: 'Correo institucional JJVV'
+    },
+    municipal: {
+      icon: '🏛️',
+      msg: 'Acceso para <strong>funcionarios municipales</strong>: ingresa con tu correo institucional para administrar la plataforma.',
+      class: 'alert-warning',
+      placeholder: 'funcionario@padrelascasas.cl',
+      label: 'Correo institucional municipal'
+    }
+  };
+
+  function seleccionarRol(rol) {
+    rolSeleccionado = rol;
+
+    // Reset tabs
+    ['vecino', 'jjvv', 'municipal'].forEach(r => {
+      const tabId = { vecino: 'tab-vecino', jjvv: 'tab-jjvv', municipal: 'tab-muni' }[r];
+      const tab = document.getElementById(tabId);
+      tab.classList.remove('active');
+    });
+
+    // Activate selected
+    const selectedId = { vecino: 'tab-vecino', jjvv: 'tab-jjvv', municipal: 'tab-muni' }[rol];
+    document.getElementById(selectedId).classList.add('active');
+
+    // Update hint
+    const hint = roleHints[rol];
+    const hintEl = document.getElementById('role-hint');
+    hintEl.className = `alert ${hint.class}`;
+    hintEl.innerHTML = `<span class="alert-icon">${hint.icon}</span><div>${hint.msg}</div>`;
+
+    // Update placeholder & label
+    document.getElementById('login-id').placeholder = hint.placeholder;
+    document.getElementById('login-id-label').textContent = hint.label;
+
+    // Reset error
+    document.getElementById('login-error').style.display = 'none';
+  }
+
+  function toggleLoginPass() {
+    const field = document.getElementById('login-pass');
+    const btn = document.querySelector('.pass-toggle-btn');
+    if (field.type === 'password') {
+      field.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      field.type = 'password';
+      btn.textContent = '👁';
+    }
+  }
+
+  function quickFill(email, pass, rol) {
+    seleccionarRol(rol);
+    document.getElementById('login-id').value = email;
+    document.getElementById('login-pass').value = pass;
+    ingresar();
+  }
+
+  function ingresar() {
+    const id = document.getElementById('login-id').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const errorEl = document.getElementById('login-error');
+    const btn = document.getElementById('btn-login');
+
+    if (!id || !pass) {
+      errorEl.style.display = 'flex';
+      errorEl.querySelector('div').textContent = 'Por favor, completa todos los campos.';
+      return;
+    }
+
+    btn.textContent = '⏳ Verificando...';
+    btn.disabled = true;
+    errorEl.style.display = 'none';
+
+    setTimeout(() => {
+      try {
+        const expected = rolSeleccionado === 'municipal' ? 'all' : rolSeleccionado;
+        const user = VeciAuth.login(id, pass, expected);
+
+        btn.textContent = '✓ ¡Acceso autorizado!';
+        btn.style.background = '#10B981';
+
+        // Redirección por rol real
+        setTimeout(() => {
+          if (user.rol === 'social') {
+            window.location.href = 'veciayuda-social.html';
+          } else if (user.rol === 'admin' || user.rol === 'funcionario') {
+            window.location.href = 'veciayuda-admin.html';
+          } else if (user.rol === 'jjvv') {
+            window.location.href = 'veciayuda-jjvv.html';
+          } else {
+            window.location.href = 'veciayuda-vecino.html';
+          }
+        }, 500);
+
+      } catch (err) {
+        btn.textContent = 'Ingresar →';
+        btn.disabled = false;
+        errorEl.style.display = 'flex';
+        errorEl.querySelector('div').textContent = err.message || 'Credenciales incorrectas.';
+      }
+    }, 400);
+  }
+
+  // Enter para ingresar
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      const focused = document.activeElement;
+      if (['login-id', 'login-pass'].includes(focused.id)) ingresar();
+    }
+  });
+</script>
+</body>
+</html>
