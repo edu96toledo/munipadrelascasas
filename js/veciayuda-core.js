@@ -1110,16 +1110,75 @@ const VeciAuth = {
 // GENERADOR Y DESCARGADOR DE PDF OFICIAL DE PRUEBA
 // ====================================================================
 const VeciPDF = {
+
+  /**
+   * Genera y descarga un archivo binario PDF real directamente a la computadora
+   */
+  descargarArchivoPDFDirecto(filename, title, lines) {
+    const textStream = [
+      'BT',
+      '/F1 15 Tf',
+      '40 790 Td',
+      `(${title}) Tj`,
+      '/F1 10 Tf',
+      '0 -24 Td'
+    ];
+
+    lines.forEach(line => {
+      const safe = String(line)
+        .replace(/\\/g, '\\\\')
+        .replace(/\(/g, '\\(')
+        .replace(/\)/g, '\\)')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Compatibilidad caracteres estándar PDF
+      textStream.push(`(${safe}) Tj`);
+      textStream.push('0 -16 Td');
+    });
+
+    textStream.push('ET');
+    const streamData = textStream.join('\n');
+    const streamLength = new TextEncoder().encode(streamData).length;
+
+    let pdf = '%PDF-1.4\n';
+    const offsets = [];
+
+    function addObj(content) {
+      offsets.push(pdf.length);
+      pdf += content + '\n';
+    }
+
+    addObj('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj');
+    addObj('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj');
+    addObj('3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>\nendobj');
+    addObj(`4 0 obj\n<< /Length ${streamLength} >>\nstream\n${streamData}\nendstream\nendobj`);
+    addObj('5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj');
+
+    const xrefOffset = pdf.length;
+    pdf += 'xref\n0 6\n0000000000 65535 f \n';
+    offsets.forEach(off => {
+      pdf += String(off).padStart(10, '0') + ' 00000 n \n';
+    });
+    pdf += `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+
+    const blob = new Blob([pdf], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename.endsWith('.pdf') ? filename : (filename + '.pdf');
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      a.remove();
+      URL.revokeObjectURL(url);
+    }, 1000);
+
+    if (typeof VeciUI !== 'undefined' && typeof VeciUI.toast === 'function') {
+      VeciUI.toast(`📥 Descargando archivo ${a.download} en tu computadora...`, 'success');
+    }
+  },
+
   descargarCertificado(certData) {
     if (!certData) {
       if (typeof VeciUI !== 'undefined') VeciUI.toast('Error: Datos del certificado no disponibles.', 'danger');
-      return;
-    }
-
-    // Crear ventana imprimible de alta precisión con marca de agua visible
-    const printWin = window.open('', '_blank', 'width=900,height=1000');
-    if (!printWin) {
-      if (typeof VeciUI !== 'undefined') VeciUI.toast('Por favor habilite las ventanas emergentes (pop-ups) para generar el PDF.', 'warning');
       return;
     }
 
@@ -1133,1106 +1192,68 @@ const VeciPDF = {
     const vencimiento = certData.vigenciaHasta || '2025-01-03';
     const firmante = certData.firmante || 'Juan Pérez Castillo — Presidente JJVV';
 
-    const htmlContent = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Certificado_Residencia_${folio}.pdf</title>
-  <style>
-    @page { size: letter; margin: 15mm; }
-    body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      color: #1a202c;
-      background: #ffffff;
-      margin: 0;
-      padding: 24px;
-      position: relative;
-    }
+    const lines = [
+      'REPUBLICA DE CHILE - REGION DE LA ARAUCANIA',
+      'SISTEMA B2G DIGITAL VECIAYUDA - MUNICIPALIDAD DE PADRE LAS CASAS',
+      '================================================================================',
+      'CERTIFICADO OFICIAL DE RESIDENCIA DOMICILIARIA',
+      '================================================================================',
+      `FOLIO OFICIAL: ${folio}`,
+      `FECHA EMISION: ${emision}       VIGENCIA: 90 DIAS CORRIDOS (HASTA ${vencimiento})`,
+      '',
+      'CERTIFICACION COMUNITARIA Y MUNICIPAL:',
+      `El Presidente de la ${jjvv}, en conjunto con la Direccion de Desarrollo`,
+      'Comunitario (DIDECO) de la Ilustre Municipalidad de Padre Las Casas, certifican que:',
+      '',
+      `DON/DONA: ${nombre}`,
+      `CEDULA NACIONAL DE IDENTIDAD (RUN): ${run}`,
+      'Tiene residencia fija, permanente y continua en el siguiente domicilio:',
+      `DIRECCION: ${direccion}`,
+      'Comuna de Padre Las Casas, Region de La Araucania.',
+      '',
+      `FINALIDAD DECLARADA: ${motivo}`,
+      '',
+      '--------------------------------------------------------------------------------',
+      '** CERTIFICADO DE PRUEBA - SIN VALIDEZ LEGAL - ENTORNO DE TESTEO CIUDADANO **',
+      '--------------------------------------------------------------------------------',
+      `Firma Digital Responsable: ${firmante}`,
+      `Verificacion Publica QR: https://edu96toledo.github.io/munipadrelascasas/pages/veciayuda-verificar.html?folio=${folio}`,
+      'Conforme a Ley 19.418 de Juntas de Vecinos y D.S. N 58.'
+    ];
 
-    /* MARCA DE AGUA DIAGONAL DE PRUEBA */
-    .watermark-container {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 9999;
-      overflow: hidden;
-    }
-    .watermark-text {
-      transform: rotate(-35deg);
-      font-size: 42px;
-      font-weight: 900;
-      letter-spacing: 4px;
-      color: rgba(220, 38, 38, 0.22);
-      border: 4px dashed rgba(220, 38, 38, 0.35);
-      padding: 18px 36px;
-      text-transform: uppercase;
-      text-align: center;
-      line-height: 1.3;
-      user-select: none;
-    }
-
-    .header-table { width: 100%; border-bottom: 3px solid #0d9488; padding-bottom: 14px; margin-bottom: 20px; }
-    .title-h1 { font-size: 22px; font-weight: 900; color: #134e4a; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
-    .sub-head { font-size: 11px; color: #4b5563; font-weight: 600; text-transform: uppercase; margin-top: 3px; }
-    
-    .meta-box {
-      background: #f0fdfa;
-      border: 1px solid #ccfbf1;
-      border-radius: 6px;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      font-size: 12.5px;
-    }
-
-    .doc-title {
-      text-align: center;
-      margin: 26px 0;
-    }
-    .doc-title h2 {
-      font-size: 24px;
-      font-weight: 900;
-      color: #0f172a;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin: 0 0 6px 0;
-    }
-    .doc-title p {
-      font-size: 12px;
-      color: #64748b;
-      margin: 0;
-      font-style: italic;
-    }
-
-    .cert-body {
-      font-size: 14.5px;
-      line-height: 1.85;
-      color: #1e293b;
-      text-align: justify;
-      margin-bottom: 32px;
-    }
-
-    .cert-highlight {
-      background: #f8fafc;
-      border-left: 4px solid #0d9488;
-      padding: 14px 20px;
-      margin: 18px 0;
-      font-size: 15px;
-    }
-
-    .signatures-table {
-      width: 100%;
-      margin-top: 40px;
-      border-top: 1px dashed #cbd5e1;
-      padding-top: 24px;
-    }
-
-    .qr-box {
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
-      padding: 8px;
-      text-align: center;
-      border-radius: 6px;
-      width: 100px;
-    }
-
-    .footer-note {
-      margin-top: 36px;
-      border-top: 1px solid #e2e8f0;
-      padding-top: 12px;
-      font-size: 10.5px;
-      color: #64748b;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    @media print {
-      .no-print { display: none !important; }
-    }
-  </style>
-</head>
-<body>
-  <!-- MARCA DE AGUA -->
-  <div class="watermark-container">
-    <div class="watermark-text">
-      CERTIFICADO DE PRUEBA<br>
-      <span style="font-size:26px; font-weight:700;">SIN VALIDEZ LEGAL — ENTORNO DEMO</span>
-    </div>
-  </div>
-
-  <div class="no-print" style="background:#0d1b2e; color:#fff; padding:12px 20px; margin:-24px -24px 24px -24px; display:flex; justify-content:space-between; align-items:center;">
-    <div style="font-size:14px; font-weight:700; color:#00D4E8;">📄 Vista Previa del Certificado PDF Generado</div>
-    <div style="display:flex; gap:10px;">
-      <button onclick="window.print()" style="background:#10B981; color:#fff; border:none; padding:8px 18px; border-radius:6px; font-weight:700; cursor:pointer;">
-        🖨️ Imprimir / Guardar como PDF
-      </button>
-      <button onclick="window.close()" style="background:#4B5563; color:#fff; border:none; padding:8px 14px; border-radius:6px; cursor:pointer;">
-        Cerrar
-      </button>
-    </div>
-  </div>
-
-  <table class="header-table">
-    <tr>
-      <td style="width:70px; vertical-align:middle;">
-        <div style="font-size:48px;">🏛️</div>
-      </td>
-      <td style="vertical-align:middle;">
-        <div class="sub-head">República de Chile · Región de La Araucanía</div>
-        <div class="title-h1">Ilustre Municipalidad de Padre Las Casas</div>
-        <div style="font-size:12px; color:#0d9488; font-weight:700; margin-top:2px;">
-          ${jjvv} · Plataforma Ciudadana VeciAyuda
-        </div>
-      </td>
-      <td style="text-align:right; vertical-align:middle;">
-        <div style="font-size:11px; color:#64748b; text-transform:uppercase;">Sistema B2G Certificado</div>
-        <div style="font-size:13px; font-weight:800; color:#1e293b;">Ley N° 19.418 / D.S. N° 58</div>
-      </td>
-    </tr>
-  </table>
-
-  <div class="meta-box">
-    <div><strong>FOLIO N°:</strong> <span style="font-family:monospace; font-weight:800; color:#0d9488; font-size:14px;">${folio}</span></div>
-    <div><strong>FECHA DE EMISIÓN:</strong> ${emision}</div>
-    <div><strong>VIGENCIA:</strong> <span style="color:#b91c1c; font-weight:700;">${vencimiento} (90 días)</span></div>
-  </div>
-
-  <div class="doc-title">
-    <h2>Certificado Oficial de Residencia</h2>
-    <p>Documento digital emitido para acreditación de domicilio legal y comunitario</p>
-  </div>
-
-  <div class="cert-body">
-    <p>
-      El Presidente de la <strong>${jjvv}</strong> de la Comuna de Padre Las Casas, en conjunto con la Dirección de Desarrollo Comunitario de la <strong>Ilustre Municipalidad de Padre Las Casas</strong>, a través del sistema digital centralizado <em>VeciAyuda</em>:
-    </p>
-
-    <div class="cert-highlight">
-      <strong>CERTIFICA QUE:</strong><br>
-      Don/Doña <strong>${nombre}</strong>, Cédula Nacional de Identidad N° <strong style="font-family:monospace;">${run}</strong>, tiene residencia fija, habitual y permanente en:
-      <br>
-      <span style="font-size:16px; font-weight:800; color:#0f172a;">${direccion}</span>,
-      comuna de Padre Las Casas, Región de La Araucanía.
-    </div>
-
-    <p>
-      Se extiende el presente certificado a solicitud del interesado(a) para ser presentado exclusivamente en trámites de:
-      <strong>${motivo}</strong>.
-    </p>
-    <p>
-      El presente instrumento público tiene una validez legal improrrogable de <strong>noventa (90) días corridos</strong> contados desde su fecha de emisión.
-    </p>
-  </div>
-
-  <table class="signatures-table">
-    <tr>
-      <td style="width:40%; text-align:center; vertical-align:bottom;">
-        <div style="font-family:'Brush Script MT', cursive; font-size:26px; color:#1e40af; margin-bottom:-4px;">${firmante.split('—')[0]}</div>
-        <div style="border-top:1.5px solid #64748b; width:200px; margin:0 auto 4px;"></div>
-        <div style="font-size:11.5px; font-weight:800;">${firmante}</div>
-        <div style="font-size:10px; color:#64748b;">${jjvv}</div>
-        <div style="font-size:9.5px; color:#059669; font-weight:700; margin-top:2px;">✓ Firma Electrónica Avanzada (Ley 19.799)</div>
-      </td>
-
-      <td style="width:35%; text-align:center; vertical-align:bottom;">
-        <div style="font-size:32px; color:#475569; margin-bottom:2px;">🛡️</div>
-        <div style="border-top:1.5px solid #64748b; width:180px; margin:0 auto 4px;"></div>
-        <div style="font-size:11.5px; font-weight:800;">DIRECCIÓN DIDECO / MINISTRO DE FE</div>
-        <div style="font-size:10px; color:#64748b;">I. Municipalidad de Padre Las Casas</div>
-        <div style="font-size:9.5px; color:#059669; font-weight:700; margin-top:2px;">✓ Registro B2G PLC Aprobado</div>
-      </td>
-
-      <td style="width:25%; text-align:center; vertical-align:middle;">
-        <div class="qr-box" style="margin: 0 auto;">
-          <svg viewBox="0 0 100 100" width="85" height="85">
-            <rect width="100" height="100" fill="#fff"/>
-            <rect x="5" y="5" width="28" height="28" fill="#0f172a"/>
-            <rect x="9" y="9" width="20" height="20" fill="#fff"/>
-            <rect x="13" y="13" width="12" height="12" fill="#0f172a"/>
-
-            <rect x="67" y="5" width="28" height="28" fill="#0f172a"/>
-            <rect x="71" y="9" width="20" height="20" fill="#fff"/>
-            <rect x="75" y="13" width="12" height="12" fill="#0f172a"/>
-
-            <rect x="5" y="67" width="28" height="28" fill="#0f172a"/>
-            <rect x="9" y="71" width="20" height="20" fill="#fff"/>
-            <rect x="13" y="75" width="12" height="12" fill="#0f172a"/>
-
-            <rect x="42" y="8" width="6" height="6" fill="#0f172a"/>
-            <rect x="52" y="18" width="6" height="6" fill="#0f172a"/>
-            <rect x="40" y="42" width="16" height="16" fill="#0d9488"/>
-            <rect x="68" y="45" width="8" height="8" fill="#0f172a"/>
-            <rect x="78" y="68" width="10" height="10" fill="#0f172a"/>
-            <rect x="42" y="75" width="8" height="8" fill="#0f172a"/>
-          </svg>
-          <div style="font-size:9px; font-weight:800; color:#0f172a; margin-top:2px;">VERIFICAR QR</div>
-        </div>
-      </td>
-    </tr>
-  </table>
-
-  <div class="footer-note">
-    <span>Para verificar la autenticidad de este certificado ingrese a: <strong>index.html#validador</strong> con el folio <strong>${folio}</strong></span>
-    <span>Municipalidad de Padre Las Casas · Región de La Araucanía</span>
-  </div>
-</body>
-</html>
-    `;
-
-    printWin.document.open();
-    printWin.document.write(htmlContent);
-    printWin.document.close();
+    this.descargarArchivoPDFDirecto(`Certificado_Residencia_${folio}.pdf`, 'ILUSTRE MUNICIPALIDAD DE PADRE LAS CASAS', lines);
   },
 
-  openSocialReportView(folioOrReqFolio) {
-    const db = VeciDB.get();
-    let req = db.requests.find(r => r.informeSocialFolio === folioOrReqFolio || r.folio === folioOrReqFolio);
-    if (!req && db.requests) {
-      req = db.requests.find(r => r.folioCertificado === folioOrReqFolio);
-    }
-    const informe = req ? (req.informeSocial || {
-      folio: req.informeSocialFolio || 'PLC-INF-SOC-2024-00128',
-      fecha: req.fechaResolucion || req.fechaSolicitud || new Date().toISOString().split('T')[0],
-      vecinoNombre: req.vecinoNombre,
-      vecinoRun: req.vecinoRun,
-      direccion: req.direccion,
-      jjvv: req.jjvvNombre,
-      asistenteSocial: req.revisorNombre || 'Lic. Camila San Martín Valenzuela',
-      cargo: 'Asistente Social DIDECO — Reg. Colegio N° 8492',
-      tramoRsh: req.rshTramo || '40% Menores Ingresos',
-      grupoFamiliar: req.grupoFamiliar || '4 integrantes',
-      tipoTenencia: req.tipoTenencia || 'Arrendataria / Allegada',
-      tiempoPLC: req.tiempoResidencia || 'Más de 3 años en la comuna',
-      diagnostico: 'Se constata residencia efectiva en el domicilio indicado mediante visita en terreno y revisión de documentación municipal. Cumple condiciones socioeconómicas para acreditación habitacional.',
-      conclusion: 'FAVORABLE — Acreditación Social de Residencia otorgada conforme a normativa DIDECO.'
-    }) : null;
-
-    if (!informe) {
+  descargarInformeSocial(infData) {
+    if (!infData) {
       if (typeof VeciUI !== 'undefined') VeciUI.toast('Informe Social no encontrado para este folio.', 'danger');
       return;
     }
-    this.descargarInformeSocial(informe, req);
-  },
 
-  descargarInformeSocial(infData, reqData = {}) {
-    const printWin = window.open('', '_blank', 'width=900,height=1000');
-    if (!printWin) {
-      if (typeof VeciUI !== 'undefined') VeciUI.toast('Por favor habilite las ventanas emergentes (pop-ups) para generar el PDF.', 'warning');
-      return;
-    }
-
-    const folio = infData.folio || 'PLC-INF-SOC-2024-00128';
-    const fecha = infData.fecha || new Date().toISOString().split('T')[0];
-    const nombre = infData.vecinoNombre || reqData.vecinoNombre || 'María Isabel Rodríguez Fuentes';
-    const run = infData.vecinoRun || reqData.vecinoRun || '12.345.678-9';
-    const direccion = infData.direccion || reqData.direccion || 'Calle Los Aromos 452, Villa Los Pinos, Padre Las Casas';
-    const jjvv = infData.jjvv || reqData.jjvvNombre || 'JJVV Villa Los Pinos';
-    const asistente = infData.asistenteSocial || 'Lic. Camila San Martín Valenzuela';
-    const cargo = infData.cargo || 'Asistente Social — DIDECO Área Social y Estratificación';
-    const tramoRsh = infData.tramoRsh || '40% Menores Ingresos';
-    const grupo = infData.grupoFamiliar || '4 integrantes';
-    const tenencia = infData.tipoTenencia || 'Arrendataria / Allegada';
-    const tiempoPLC = infData.tiempoPLC || '4 años continuos';
-    const diagnostico = infData.diagnostico || 'Se constata residencia efectiva mediante visita en terreno y revisión de cuentas básicas.';
-    const conclusion = infData.conclusion || 'FAVORABLE — Procedencia de acreditación y certificación social.';
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Informe_Social_${folio}.pdf</title>
-  <style>
-    @page { size: letter; margin: 15mm; }
-    body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      color: #1a202c;
-      background: #ffffff;
-      margin: 0;
-      padding: 24px;
-      position: relative;
-    }
-    .watermark-container {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 9999;
-      overflow: hidden;
-    }
-    .watermark-text {
-      transform: rotate(-35deg);
-      font-size: 38px;
-      font-weight: 900;
-      letter-spacing: 3px;
-      color: rgba(220, 38, 38, 0.22);
-      border: 4px dashed rgba(220, 38, 38, 0.35);
-      padding: 16px 32px;
-      text-transform: uppercase;
-      text-align: center;
-      line-height: 1.3;
-      user-select: none;
-    }
-    .header-table { width: 100%; border-bottom: 3px solid #7c3aed; padding-bottom: 12px; margin-bottom: 18px; }
-    .title-h1 { font-size: 20px; font-weight: 900; color: #5b21b6; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
-    .sub-head { font-size: 11px; color: #4b5563; font-weight: 700; text-transform: uppercase; margin-top: 3px; }
-    .meta-box {
-      background: #f5f3ff;
-      border: 1px solid #ddd6fe;
-      border-radius: 6px;
-      padding: 10px 16px;
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .section-title {
-      font-size: 12px;
-      font-weight: 800;
-      color: #4c1d95;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      border-bottom: 1.5px solid #e2e8f0;
-      padding-bottom: 4px;
-      margin-top: 16px;
-      margin-bottom: 10px;
-    }
-    .data-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 12.5px; }
-    .data-table td { padding: 6px 10px; border: 1px solid #e2e8f0; }
-    .data-table td.label { font-weight: 700; width: 32%; background: #f8fafc; color: #334155; }
-    .diag-box {
-      background: #faf5ff;
-      border: 1px solid #e9d5ff;
-      border-radius: 6px;
-      padding: 12px 16px;
-      font-size: 12.5px;
-      line-height: 1.6;
-      color: #1e293b;
-      margin-bottom: 16px;
-    }
-    .conclusion-badge {
-      display: inline-block;
-      background: #dcfce7;
-      border: 1.5px solid #86efac;
-      color: #166534;
-      font-weight: 800;
-      padding: 6px 14px;
-      border-radius: 6px;
-      font-size: 13px;
-      margin-top: 6px;
-    }
-    .firmas-table { width: 100%; margin-top: 28px; }
-    .firmas-table td { width: 50%; vertical-align: top; text-align: center; padding: 0 16px; }
-    .firma-line { border-top: 1.5px solid #334155; padding-top: 6px; margin-top: 40px; font-size: 12px; }
-    .print-bar {
-      position: sticky; top: 0; background: #5b21b6; color: #fff; padding: 12px 20px;
-      display: flex; justify-content: space-between; align-items: center; border-radius: 8px; margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    }
-    .btn-print {
-      background: #fff; color: #5b21b6; border: none; padding: 8px 18px; border-radius: 6px;
-      font-weight: 800; font-size: 13px; cursor: pointer;
-    }
-    @media print {
-      .print-bar { display: none !important; }
-      body { padding: 0; }
-    }
-  </style>
-</head>
-<body>
-  <div class="watermark-container">
-    <div class="watermark-text">
-      INFORME SOCIAL DE PRUEBA<br>
-      <span style="font-size:24px; font-weight:700;">SIN VALIDEZ LEGAL · SISTEMA DE DEMOSTRACIÓN</span>
-    </div>
-  </div>
-
-  <div class="print-bar">
-    <div>
-      <strong>INFORME SOCIAL DIDECO — DOCUMENTO OFICIAL DE PRUEBA</strong>
-      <div style="font-size:11px; opacity:0.9;">Ilustre Municipalidad de Padre Las Casas · Dirección de Desarrollo Comunitario</div>
-    </div>
-    <button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>
-  </div>
-
-  <table class="header-table">
-    <tr>
-      <td style="width:75px; vertical-align:middle;">
-        <svg viewBox="0 0 100 100" width="65" height="65">
-          <circle cx="50" cy="50" r="46" fill="#5b21b6"/>
-          <path d="M 50 15 L 80 40 L 70 85 L 30 85 L 20 40 Z" fill="#fff" opacity="0.9"/>
-          <path d="M 50 25 L 70 42 L 63 75 L 37 75 L 30 42 Z" fill="#5b21b6"/>
-          <circle cx="50" cy="50" r="8" fill="#e9d5ff"/>
-          <text x="50" y="80" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">PLC</text>
-        </svg>
-      </td>
-      <td style="vertical-align:middle; padding-left:14px;">
-        <h1 class="title-h1">ILUSTRE MUNICIPALIDAD DE PADRE LAS CASAS</h1>
-        <div class="sub-head">DIRECCIÓN DE DESARROLLO COMUNITARIO (DIDECO) · DEPARTAMENTO SOCIAL</div>
-        <div style="font-size:11px; color:#6b7280; margin-top:2px;">Región de La Araucanía — Sistema Digital VeciAyuda</div>
-      </td>
-      <td style="vertical-align:middle; text-align:right;">
-        <div style="font-size:10px; font-weight:800; color:#5b21b6; text-transform:uppercase;">Folio Expediente</div>
-        <div style="font-family:monospace; font-size:14px; font-weight:800; color:#1e1b4b;">${folio}</div>
-        <div style="font-size:10px; color:#6b7280;">Fecha: ${fecha}</div>
-      </td>
-    </tr>
-  </table>
-
-  <div style="text-align:center; margin: 18px 0 14px 0;">
-    <h2 style="margin:0; font-size:17px; font-weight:900; color:#1e293b; text-transform:uppercase; letter-spacing:0.8px;">
-      INFORME SOCIAL Y DE HABITABILIDAD DE RESIDENCIA
-    </h2>
-    <div style="font-size:11.5px; color:#475569; margin-top:3px;">
-      Verificación sociohabitacional para trámites de subsidios, beneficios municipales y acreditación de residencia
-    </div>
-  </div>
-
-  <div class="meta-box">
-    <div><strong>Asistente Social Responsable:</strong> ${asistente}</div>
-    <div><strong>Cargo:</strong> ${cargo}</div>
-    <div><strong>Estado:</strong> <span style="color:#166534; font-weight:800;">EVALUADO</span></div>
-  </div>
-
-  <div class="section-title">1. Identificación del / de la Solicitante</div>
-  <table class="data-table">
-    <tr>
-      <td class="label">Nombre Completo:</td>
-      <td><strong>${nombre}</strong></td>
-      <td class="label">RUN:</td>
-      <td><strong>${run}</strong></td>
-    </tr>
-    <tr>
-      <td class="label">Dirección Particular:</td>
-      <td colspan="3">${direccion}</td>
-    </tr>
-    <tr>
-      <td class="label">Junta de Vecinos:</td>
-      <td>${jjvv}</td>
-      <td class="label">Comuna / Región:</td>
-      <td>Padre Las Casas, Región de La Araucanía</td>
-    </tr>
-  </table>
-
-  <div class="section-title">2. Antecedentes Socioeconómicos y Registro Social de Hogares (RSH)</div>
-  <table class="data-table">
-    <tr>
-      <td class="label">Calificación Socioeconómica:</td>
-      <td><strong style="color:#5b21b6;">${tramoRsh}</strong></td>
-      <td class="label">Composición Familiar:</td>
-      <td>${grupo}</td>
-    </tr>
-    <tr>
-      <td class="label">Tipo de Tenencia de Vivienda:</td>
-      <td>${tenencia}</td>
-      <td class="label">Permanencia en la Comuna:</td>
-      <td>${tiempoPLC}</td>
-    </tr>
-  </table>
-
-  <div class="section-title">3. Síntesis y Diagnóstico Social en Terreno</div>
-  <div class="diag-box">
-    ${diagnostico}
-  </div>
-
-  <div class="section-title">4. Conclusión Técnica y Dictamen Profesional</div>
-  <div style="margin-bottom:20px;">
-    <div>De acuerdo a los antecedentes recabados, visita y cotejo de documentos aportados por la parte interesada, la suscrita concluye:</div>
-    <div class="conclusion-badge">✓ DICTAMEN: ${conclusion}</div>
-  </div>
-
-  <table class="firmas-table">
-    <tr>
-      <td>
-        <div style="border: 2px dashed #a78bfa; padding: 12px; border-radius: 8px; background: #faf5ff; display:inline-block; min-width: 220px;">
-          <div style="font-size:10px; font-weight:800; color:#5b21b6;">TIMBRE ELECTRÓNICO MUNICIPAL</div>
-          <div style="font-size:9px; color:#6b7280; margin-top:2px;">DIDECO · PADRE LAS CASAS</div>
-          <div style="font-size:9px; font-family:monospace; margin-top:4px; color:#4c1d95;">COD: ${folio}-VAL</div>
-        </div>
-      </td>
-      <td>
-        <div class="firma-line">
-          <strong>${asistente}</strong><br>
-          <span>Asistente Social — Licenciada en Trabajo Social</span><br>
-          <span style="font-size:10px; color:#6b7280;">DIDECO · I. Municipalidad de Padre Las Casas</span>
-        </div>
-      </td>
-    </tr>
-  </table>
-
-  <div style="margin-top:24px; padding-top:10px; border-top:1px solid #e2e8f0; font-size:10px; color:#64748B; display:flex; justify-content:space-between;">
-    <span>Documento de evaluación técnica generado en la plataforma municipal VeciAyuda.</span>
-    <span>Padre Las Casas · La Araucanía · Chile</span>
-  </div>
-</body>
-</html>
-    `;
-
-    printWin.document.open();
-    printWin.document.write(htmlContent);
-    printWin.document.close();
-  }
-};
-
-// ====================================================================
-// WIDGET FLOTANTE GLOBAL: TESTER / SWITCHER RÁPIDO DE ROLES
-// Permite probar de punta a punta sin tener que escribir credenciales
-// ====================================================================
-function initVeciAyudaTesterBar() {
-  if (document.getElementById('veciayuda-tester-widget')) return;
-
-  const currentUser = VeciAuth.getCurrentUser();
-
-  const container = document.createElement('div');
-  container.id = 'veciayuda-tester-widget';
-  container.innerHTML = `
-    <style>
-      #veciayuda-tester-widget {
-        position: fixed;
-        bottom: 18px;
-        right: 18px;
-        z-index: 99999;
-        font-family: 'Inter', sans-serif;
-      }
-      .tester-pill {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(6, 13, 26, 0.95);
-        border: 1.5px solid #00D4E8;
-        border-radius: 9999px;
-        padding: 8px 16px;
-        color: #F0F6FF;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.7), 0 0 16px rgba(0,212,232,0.3);
-        cursor: pointer;
-        backdrop-filter: blur(12px);
-        transition: all 0.2s ease;
-      }
-      .tester-pill:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.8), 0 0 24px rgba(0,212,232,0.45);
-      }
-      .tester-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #10B981;
-        box-shadow: 0 0 8px #10B981;
-      }
-      .tester-menu {
-        display: none;
-        position: absolute;
-        bottom: calc(100% + 10px);
-        right: 0;
-        width: 320px;
-        background: #0D1B2E;
-        border: 1.5px solid rgba(0,212,232,0.35);
-        border-radius: 16px;
-        padding: 16px;
-        box-shadow: 0 16px 40px rgba(0,0,0,0.85);
-        animation: dropdownIn 0.2s ease;
-      }
-      .tester-menu.open { display: block; }
-      .tester-header {
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: #00D4E8;
-        letter-spacing: 0.08em;
-        margin-bottom: 8px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .tester-user-btn {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        width: 100%;
-        padding: 9px 12px;
-        border-radius: 8px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid rgba(255,255,255,0.08);
-        color: #F0F6FF;
-        text-align: left;
-        cursor: pointer;
-        margin-bottom: 6px;
-        transition: all 0.15s;
-        font-size: 13px;
-      }
-      .tester-user-btn:hover {
-        background: rgba(0,212,232,0.12);
-        border-color: rgba(0,212,232,0.4);
-      }
-      .tester-user-btn.active {
-        background: rgba(0,212,232,0.18);
-        border-color: #00D4E8;
-      }
-      .tester-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 11px;
-        flex-shrink: 0;
-      }
-    </style>
-
-    <div class="tester-pill" onclick="toggleTesterMenu()">
-      <span class="tester-dot"></span>
-      <span style="font-size:12.5px; font-weight:700;">⚡ Accesos Rápidos de Prueba</span>
-      <span style="font-size:11px; color:#94A9C9;">(Rol: ${currentUser ? currentUser.rol.toUpperCase() : 'INVITADO'})</span>
-    </div>
-
-    <div class="tester-menu" id="testerMenu">
-      <div class="tester-header">
-        <span>Cambio de Perfil en 1 Clic</span>
-        <button onclick="VeciDB.reset(); if(typeof VeciUI !== 'undefined') VeciUI.toast('Base de datos reiniciada con datos iniciales de prueba.', 'info'); setTimeout(() => location.reload(), 800);" style="background:none; border:none; color:#EF4444; font-size:11px; cursor:pointer;" title="Reiniciar datos demo">↺ Reset</button>
-      </div>
-
-      <button class="tester-user-btn ${currentUser && currentUser.rol === 'admin' ? 'active' : ''}" onclick="VeciAuth.quickSwitch('admin')">
-        <div class="tester-avatar" style="background:#7C3AED; color:#fff;">AM</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:700; font-size:13px;">🛡️ Administrador Municipal</div>
-          <div style="font-size:11px; color:#94A9C9;">Ana Martínez (Control Total)</div>
-        </div>
-      </button>
-
-      <button class="tester-user-btn ${currentUser && currentUser.rol === 'social' ? 'active' : ''}" onclick="VeciAuth.quickSwitch('social')">
-        <div class="tester-avatar" style="background:#EC4899; color:#fff;">CS</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:700; font-size:13px;">🤝 Funcionario Social (DIDECO)</div>
-          <div style="font-size:11px; color:#94A9C9;">Lic. Camila San Martín (Informes/Social)</div>
-        </div>
-      </button>
-
-      <button class="tester-user-btn ${currentUser && currentUser.rol === 'funcionario' ? 'active' : ''}" onclick="VeciAuth.quickSwitch('funcionario')">
-        <div class="tester-avatar" style="background:#3B7BF8; color:#fff;">CR</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:700; font-size:13px;">👤 Funcionario Municipal</div>
-          <div style="font-size:11px; color:#94A9C9;">Carlos Riquelme (Comunitario)</div>
-        </div>
-      </button>
-
-      <button class="tester-user-btn ${currentUser && currentUser.rol === 'jjvv' ? 'active' : ''}" onclick="VeciAuth.quickSwitch('jjvv')">
-        <div class="tester-avatar" style="background:#10B981; color:#fff;">JP</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:700; font-size:13px;">🏘️ Presidente JJVV</div>
-          <div style="font-size:11px; color:#94A9C9;">Juan Pérez (Villa Los Pinos)</div>
-        </div>
-      </button>
-
-      <button class="tester-user-btn ${currentUser && currentUser.rol === 'vecino' ? 'active' : ''}" onclick="VeciAuth.quickSwitch('vecino')">
-        <div class="tester-avatar" style="background:#00D4E8; color:#060D1A;">MR</div>
-        <div style="flex:1; min-width:0;">
-          <div style="font-weight:700; font-size:13px;">🏠 Vecina (Solicitante)</div>
-          <div style="font-size:11px; color:#94A9C9;">María Rodríguez (Pedir/Descargar)</div>
-        </div>
-      </button>
-
-      <div style="margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.08); font-size:11px; color:#64748B; text-align:center;">
-        Pruebas de punta a punta con persistencia en localStorage
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(container);
-}
-
-function toggleTesterMenu() {
-  const m = document.getElementById('testerMenu');
-  if (m) m.classList.toggle('open');
-}
-
-// Inicializar la barra de tester al cargar cualquier página
-if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', () => {
-    initVeciAyudaTesterBar();
-  });
-}
-
-// ============================================================================
-// VECI-UI: NOTIFICACIONES TOAST, MODALES Y VISOR DE EXPEDIENTES
-// ============================================================================
-const VeciUI = {
-  toastContainer: null,
-
-  init() {
-    if (typeof document === 'undefined') return;
-    if (!this.toastContainer && !document.getElementById('veci-toast-container')) {
-      const c = document.createElement('div');
-      c.id = 'veci-toast-container';
-      c.style.cssText = 'position:fixed; bottom:24px; right:24px; z-index:999999; display:flex; flex-direction:column; gap:10px; max-width:440px; width:calc(100vw - 48px); pointer-events:none;';
-      document.body.appendChild(c);
-      this.toastContainer = c;
-    } else if (!this.toastContainer) {
-      this.toastContainer = document.getElementById('veci-toast-container');
-    }
-  },
-
-  toast(message, type = 'success', duration = 4000) {
-    this.init();
-    if (!this.toastContainer) {
-      console.log('[Toast ' + type + ']: ' + message);
-      return;
-    }
-
-    const toast = document.createElement('div');
-    toast.className = 'veci-toast veci-toast-' + type;
-    const accent = type === 'success' ? '#10B981' : (type === 'danger' || type === 'error') ? '#EF4444' : type === 'warning' ? '#F59E0B' : '#00D4E8';
-    
-    toast.style.cssText = `
-      pointer-events:auto;
-      display:flex;
-      align-items:flex-start;
-      gap:12px;
-      padding:14px 18px;
-      background:#0B132B;
-      color:#F8FAFC;
-      border-radius:12px;
-      border:1px solid ${accent};
-      box-shadow:0 12px 35px rgba(0,0,0,0.65), 0 0 20px rgba(0,0,0,0.4);
-      font-size:13px;
-      line-height:1.45;
-      font-family:system-ui, -apple-system, sans-serif;
-      transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      transform:translateY(15px);
-      opacity:0;
-    `;
-
-    const icon = type === 'success' ? '✅' : (type === 'danger' || type === 'error') ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
-
-    toast.innerHTML = `
-      <div style="font-size:18px; line-height:1; flex-shrink:0;">${icon}</div>
-      <div style="flex:1; font-weight:500; white-space:pre-line;">${message}</div>
-      <button onclick="this.parentElement.remove()" style="background:none; border:none; color:#94A9C9; cursor:pointer; font-size:16px; padding:0; line-height:1;">✕</button>
-    `;
-
-    this.toastContainer.appendChild(toast);
-
-    requestAnimationFrame(() => {
-      toast.style.transform = 'translateY(0)';
-      toast.style.opacity = '1';
-    });
-
-    if (duration > 0) {
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(10px)';
-        setTimeout(() => toast.remove(), 320);
-      }, duration);
-    }
-  },
-
-  modalAlert(opts) {
-    if (typeof document === 'undefined') return;
-    const config = (typeof opts === 'string' ? { message: opts } : opts) || {};
-    const title = config.title || 'Aviso Municipal';
-    const message = config.message || '';
-    const type = config.type || 'info';
-    const confirmText = config.confirmText || 'Entendido';
-    const onConfirm = config.onConfirm;
-
-    let modal = document.getElementById('veci-modal-alert');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'veci-modal-alert';
-      modal.className = 'modal-overlay';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(6,13,26,0.85); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:9999999; padding:16px;';
-      document.body.appendChild(modal);
-    }
-
-    const icon = type === 'success' ? '✅' : (type === 'danger' || type === 'error') ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
-    const accent = type === 'success' ? '#10B981' : (type === 'danger' || type === 'error') ? '#EF4444' : type === 'warning' ? '#F59E0B' : '#00D4E8';
-
-    modal.innerHTML = `
-      <div class="modal-box" style="background:#0B132B; border:1px solid ${accent}; border-radius:16px; padding:24px; max-width:480px; width:100%; box-shadow:0 25px 60px rgba(0,0,0,0.8); color:#F8FAFC;">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
-          <div style="font-size:24px;">${icon}</div>
-          <h3 style="font-size:17px; font-weight:800; margin:0; color:#F8FAFC;">${title}</h3>
-        </div>
-        <div style="font-size:13px; line-height:1.6; color:#CBD5E1; margin-bottom:20px; white-space:pre-line;">${message}</div>
-        <div style="display:flex; justify-content:flex-end;">
-          <button id="veci-modal-alert-btn" class="btn btn-primary" style="min-width:120px; background:${accent}; border-color:${accent}; color:#fff; font-weight:700;">${confirmText}</button>
-        </div>
-      </div>
-    `;
-
-    modal.style.display = 'flex';
-
-    const btn = document.getElementById('veci-modal-alert-btn');
-    if (btn) {
-      btn.focus();
-      btn.onclick = () => {
-        modal.style.display = 'none';
-        if (typeof onConfirm === 'function') onConfirm();
-      };
-    }
-  },
-
-  openDocViewer(folio, fileIdx = 0, roleContext = 'vecino') {
-    if (typeof document === 'undefined') return;
-    const r = VeciDB.getRequestByFolio(folio) || {
-      folio: folio || 'CERT-DEMO-001',
-      vecinoNombre: 'María Isabel Rodríguez Fuentes',
-      vecinoRun: '18.456.789-2',
-      direccion: 'Calle Los Aromos 452, Villa Los Pinos, Padre Las Casas',
-      motivo: 'Subsidio Habitacional (DS49 / DS1)',
-      adjuntos: [
-        { nombre: 'boleta_cge_luz_oct2024.pdf', tipo: 'Boleta de Servicios', size: '1.2 MB' },
-        { nombre: 'contrato_arriendo_vigente.pdf', tipo: 'Contrato de Arriendo', size: '2.4 MB' }
-      ]
-    };
-
-    let modal = document.getElementById('veci-global-doc-viewer');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'veci-global-doc-viewer';
-      modal.className = 'modal-overlay';
-      modal.style.cssText = 'position:fixed; inset:0; background:rgba(6,13,26,0.85); backdrop-filter:blur(6px); display:none; align-items:center; justify-content:center; z-index:999999; padding:16px;';
-      document.body.appendChild(modal);
-    }
-
-    const docs = (r.adjuntos && r.adjuntos.length) ? r.adjuntos : [
-      { nombre: 'boleta_cge_luz_oct2024.pdf', tipo: 'Boleta de Servicios Básicos', size: '1.2 MB' },
-      { nombre: 'contrato_arriendo_vigente.pdf', tipo: 'Contrato Notarial de Arriendo', size: '2.4 MB' }
+    const folio = infData.folio || 'PLC-INF-2024-0001';
+    const lines = [
+      'REPUBLICA DE CHILE - ILUSTRE MUNICIPALIDAD DE PADRE LAS CASAS',
+      'DIRECCION DE DESARROLLO COMUNITARIO (DIDECO) - TRABAJO SOCIAL',
+      '================================================================================',
+      'INFORME SOCIAL OFICIAL DE VULNERABILIDAD Y RESIDENCIA',
+      '================================================================================',
+      `FOLIO INFORME: ${folio}        FECHA EVALUACION: ${infData.fecha || '2024-11-20'}`,
+      `SOLICITANTE: ${infData.vecinoNombre} (RUN: ${infData.vecinoRun})`,
+      `DOMICILIO SOCIAL: ${infData.direccion || 'Padre Las Casas'}`,
+      `TRAMO RSH: ${infData.tramoRSH || 'Tramo 40% Vulnerabilidad'}`,
+      `PUNTAJE SOCIOHABITACIONAL: ${infData.puntajeSocial || 88} / 100`,
+      `ESTADO RESIDENCIAL: ${infData.estadoVivienda || 'Vivienda Familiar Acreditada'}`,
+      '',
+      'CONCLUSION TECNICA DEL ASISTENTE SOCIAL:',
+      infData.diagnostico || 'Se constata residencia efectiva del grupo familiar en la direccion acreditada.',
+      '',
+      '--------------------------------------------------------------------------------',
+      '** INFORME SOCIAL DE PRUEBA - SIN VALIDEZ LEGAL - ENTORNO TESTEO **',
+      '--------------------------------------------------------------------------------',
+      `Evaluador Responsable: ${infData.profesional || 'Lic. Camila San Martin - Trabajadora Social DIDECO'}`,
+      'Validacion: https://edu96toledo.github.io/munipadrelascasas/pages/veciayuda-verificar.html'
     ];
 
-    const currentDoc = docs[fileIdx] || docs[0];
-    const isLuz = currentDoc.nombre.toLowerCase().includes('luz') || currentDoc.nombre.toLowerCase().includes('cge');
-    const isArriendo = currentDoc.nombre.toLowerCase().includes('arriendo') || currentDoc.nombre.toLowerCase().includes('contrato');
-    const isRSH = currentDoc.nombre.toLowerCase().includes('rsh') || currentDoc.nombre.toLowerCase().includes('social') || currentDoc.nombre.toLowerCase().includes('cartola');
-
-    let canvasHtml = '';
-
-    if (isLuz) {
-      canvasHtml = `
-        <div style="background:#fff; color:#1e293b; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:Arial, sans-serif; position:relative;">
-          <div style="position:absolute; right:20px; top:20px; border:2px dashed #16a34a; color:#16a34a; padding:6px 12px; font-size:11px; font-weight:800; border-radius:6px; transform:rotate(-5deg); background:rgba(22,163,74,0.05);">
-            ✓ ACREDITACIÓN CONFORME
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0284c7; padding-bottom:12px; margin-bottom:16px;">
-            <div>
-              <div style="font-size:20px; font-weight:900; color:#0284c7;">CGE DISTRIBUCIÓN</div>
-              <div style="font-size:10px; color:#64748b;">Compañía General de Electricidad S.A. · Padre Las Casas</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:11px; color:#64748b;">BOLETA ELECTRÓNICA Nº 849.201.332</div>
-              <div style="font-size:12px; font-weight:700;">Vencimiento: 28/11/2024</div>
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; background:#f8fafc; padding:14px; border-radius:6px; margin-bottom:16px; font-size:12px;">
-            <div>
-              <div style="color:#64748b; font-size:10px; text-transform:uppercase;">Titular / Cliente:</div>
-              <div style="font-weight:700; font-size:13px; color:#0f172a;">${r.vecinoNombre}</div>
-              <div style="color:#475569;">R.U.N.: ${r.vecinoRun}</div>
-              <div style="color:#475569;">N° Cliente: 1983021-4</div>
-            </div>
-            <div>
-              <div style="color:#64748b; font-size:10px; text-transform:uppercase;">Dirección de Suministro:</div>
-              <div style="font-weight:700; font-size:13px; color:#0f172a;">${r.direccion}</div>
-              <div style="color:#475569;">Comuna: Padre Las Casas, Región de La Araucanía</div>
-              <div style="color:#16a34a; font-weight:700; font-size:11px;">● Tarifa BT1 Residencial (Activo)</div>
-            </div>
-          </div>
-          <div style="border:1px solid #e2e8f0; border-radius:6px; padding:12px; margin-bottom:14px; font-size:11px;">
-            <div style="font-weight:700; margin-bottom:6px; color:#334155;">Detalle de Cobros del Mes:</div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Consumo Energía Eléctrica (184 kWh):</span><span>$18.420</span></div>
-            <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>Administración del Servicio:</span><span>$1.150</span></div>
-            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:13px; border-top:1px solid #cbd5e1; padding-top:6px; margin-top:6px; color:#0f172a;">
-              <span>TOTAL A PAGAR:</span><span>$19.570</span>
-            </div>
-          </div>
-          <div style="display:flex; justify-content:space-between; align-items:center; font-size:10px; color:#94a3b8; border-top:1px dashed #cbd5e1; padding-top:8px;">
-            <span>Timbre Electrónico SII Res. N° 80 de 2014</span>
-            <span style="font-family:monospace; font-weight:700; letter-spacing:2px;">[SII TIMBRE ELECTRONICO VALIDO]</span>
-          </div>
-        </div>
-      `;
-    } else if (isArriendo) {
-      canvasHtml = `
-        <div style="background:#fff; color:#1e293b; padding:26px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:'Times New Roman', Times, serif; position:relative;">
-          <div style="position:absolute; right:20px; top:20px; border:2px dashed #0284c7; color:#0284c7; padding:6px 12px; font-size:11px; font-weight:800; border-radius:6px; font-family:sans-serif; transform:rotate(-4deg); background:rgba(2,132,199,0.05);">
-            ✓ PROTOCOLIZADO NOTARIAL
-          </div>
-          <div style="text-align:center; border-bottom:1px solid #000; padding-bottom:10px; margin-bottom:16px;">
-            <div style="font-size:15px; font-weight:900; letter-spacing:1px;">NOTARÍA PÚBLICA Y CONSERVADOR</div>
-            <div style="font-size:12px; font-style:italic;">Padre Las Casas — Región de La Araucanía</div>
-            <div style="font-size:10px; font-family:sans-serif; color:#64748b; margin-top:4px;">Repertorio N° 12.845-2024 · Registro de Contratos</div>
-          </div>
-          <h4 style="text-align:center; font-size:13px; text-transform:uppercase; margin:14px 0; font-family:sans-serif;">CONTRATO DE ARRENDAMIENTO DE BIEN RAÍZ RESIDENCIAL</h4>
-          <p style="font-size:12px; line-height:1.7; text-align:justify; margin-bottom:12px;">
-            En Padre Las Casas, comparecen: don <strong>Patricio Alarcón Soto</strong>, RUN 9.384.112-5, en calidad de Arrendador; y doña <strong>${r.vecinoNombre}</strong>, RUN <strong>${r.vecinoRun}</strong>, en calidad de Arrendataria:
-          </p>
-          <p style="font-size:12px; line-height:1.7; text-align:justify; background:#f8fafc; padding:10px; border-left:3px solid #0284c7; font-family:sans-serif;">
-            <strong>PRIMERO:</strong> El Arrendador da en arrendamiento a la Arrendataria, quien acepta para sí, el inmueble ubicado en <strong>${r.direccion}</strong>, comuna de Padre Las Casas. Destino exclusivo: habitación familiar continua.
-          </p>
-          <div style="margin-top:24px; display:flex; justify-content:space-around; text-align:center; font-size:11px; font-family:sans-serif;">
-            <div>
-              <div style="border-bottom:1px solid #000; width:150px; margin-bottom:4px; height:24px;"></div>
-              <div>Arrendador</div>
-            </div>
-            <div>
-              <div style="border-bottom:1px solid #000; width:150px; margin-bottom:4px; height:24px;"></div>
-              <div><strong>${r.vecinoNombre}</strong><br>Arrendataria</div>
-            </div>
-          </div>
-          <div style="margin-top:20px; font-family:sans-serif; font-size:10px; color:#15803d; text-align:center; border:1px solid #86efac; background:#f0fdf4; padding:6px; border-radius:4px;">
-            Certifico que las firmas puestas al pie corresponden a las partes. — Padre Las Casas.
-          </div>
-        </div>
-      `;
-    } else if (isRSH) {
-      canvasHtml = `
-        <div style="background:#fff; color:#1e293b; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:Arial, sans-serif; position:relative;">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e11d48; padding-bottom:12px; margin-bottom:16px;">
-            <div>
-              <div style="font-size:18px; font-weight:900; color:#e11d48;">REGISTRO SOCIAL DE HOGARES</div>
-              <div style="font-size:10px; color:#64748b;">Ministerio de Desarrollo Social y Familia · Gobierno de Chile</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:11px; font-weight:700;">CARTOLA HOGAR OFICIAL</div>
-              <div style="font-size:10px; color:#64748b;">Padre Las Casas</div>
-            </div>
-          </div>
-          <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:8px; padding:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
-            <div>
-              <div style="font-size:11px; color:#881337;">Tramo Socioeconómico:</div>
-              <div style="font-size:18px; font-weight:900; color:#9f1239;">Tramo 40% Menores Ingresos</div>
-            </div>
-            <div style="background:#e11d48; color:#fff; font-size:11px; font-weight:800; padding:6px 12px; border-radius:20px;">
-              VIGENTE
-            </div>
-          </div>
-          <div style="font-size:12px; line-height:1.6; margin-bottom:14px;">
-            <div><strong>Jefe(a) de Hogar:</strong> ${r.vecinoNombre} (RUN: ${r.vecinoRun})</div>
-            <div><strong>Domicilio Acreditado:</strong> ${r.direccion}</div>
-          </div>
-        </div>
-      `;
-    } else {
-      canvasHtml = `
-        <div style="background:#fff; color:#1e293b; padding:24px; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:Arial, sans-serif; position:relative;">
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #00D4E8; padding-bottom:12px; margin-bottom:16px;">
-            <div>
-              <div style="font-size:18px; font-weight:900; color:#0284c7;">AGUAS ARAUCANÍA S.A.</div>
-              <div style="font-size:10px; color:#64748b;">Boleta de Servicios Sanitarios · Padre Las Casas</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:11px; font-weight:700;">Folio: 009281-2024</div>
-              <div style="font-size:10px; color:#16a34a;">● Al día</div>
-            </div>
-          </div>
-          <div style="font-size:12px; line-height:1.6; margin-bottom:14px; background:#f8fafc; padding:12px; border-radius:6px;">
-            <div><strong>Titular:</strong> ${r.vecinoNombre}</div>
-            <div><strong>RUN:</strong> ${r.vecinoRun}</div>
-            <div><strong>Dirección de Suministro:</strong> ${r.direccion}</div>
-          </div>
-          <div style="font-size:11px; display:flex; justify-content:space-between; border-top:1px solid #cbd5e1; padding-top:8px;">
-            <span>Total Facturado:</span><strong>$14.390</strong>
-          </div>
-        </div>
-      `;
-    }
-
-    const tabsHtml = docs.map((d, i) => `
-      <button onclick="VeciUI.openDocViewer('${r.folio}', ${i}, '${roleContext}')" class="btn btn-sm ${i === fileIdx ? 'btn-primary' : 'btn-ghost'}" style="font-size:12px; white-space:nowrap;">
-        📄 ${d.nombre}
-      </button>
-    `).join('');
-
-    let actionBtnsHtml = '';
-    if (roleContext === 'jjvv') {
-      actionBtnsHtml = `
-        <button class="btn btn-danger btn-sm" onclick="VeciUI.closeDocViewer(); if(typeof abrirModalRechazoDesdeVisor === 'function') { abrirModalRechazoDesdeVisor(); } else if(typeof abrirModalRechazarJJVV === 'function') { abrirModalRechazarJJVV('${r.folio}'); }">❌ Rechazar con Motivo</button>
-        <button class="btn btn-success btn-sm" onclick="VeciUI.closeDocViewer(); if(typeof abrirModalAprobarDesdeVisor === 'function') { abrirModalAprobarDesdeVisor(); } else if(typeof abrirModalAprobarJJVV === 'function') { abrirModalAprobarJJVV('${r.folio}'); }">✅ Aprobar Solicitud</button>
-      `;
-    } else if (roleContext === 'admin') {
-      actionBtnsHtml = `
-        <button class="btn btn-danger btn-sm" onclick="VeciUI.closeDocViewer(); if(typeof abrirModalRechazarAdmin === 'function') abrirModalRechazarAdmin('${r.folio}');">❌ Rechazar</button>
-        <button class="btn btn-warning btn-sm" onclick="VeciUI.closeDocViewer(); if(typeof abrirModalDerivarAdmin === 'function') abrirModalDerivarAdmin('${r.folio}');">🔄 Derivar JJVV</button>
-        <button class="btn btn-success btn-sm" onclick="VeciUI.closeDocViewer(); if(typeof abrirModalAprobarAdmin === 'function') abrirModalAprobarAdmin('${r.folio}');">✅ Aprobar</button>
-      `;
-    } else if (roleContext === 'social') {
-      actionBtnsHtml = `
-        <button class="btn btn-primary btn-sm" onclick="VeciUI.closeDocViewer(); if(typeof abrirModalEmitirInforme === 'function') abrirModalEmitirInforme('${r.folio}');">📋 Emitir Informe Social</button>
-      `;
-    }
-
-    modal.innerHTML = `
-      <div class="modal-box" style="max-width:880px; width:95%; max-height:92vh; display:flex; flex-direction:column; padding:22px; background:#0B132B; border:1px solid rgba(0,212,232,0.4); border-radius:16px; box-shadow:0 25px 60px rgba(0,0,0,0.8); color:#F8FAFC;">
-        <!-- Header -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px; margin-bottom:14px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:40px; height:40px; border-radius:10px; background:rgba(0,212,232,0.15); border:1px solid rgba(0,212,232,0.3); display:flex; align-items:center; justify-content:center; font-size:20px;">
-              📁
-            </div>
-            <div>
-              <h3 style="font-size:16px; font-weight:800; margin:0; color:#F8FAFC;">Expediente de Respaldo: ${r.folio}</h3>
-              <div style="font-size:12px; color:#94A9C9;">Solicitante: ${r.vecinoNombre} · RUN: ${r.vecinoRun}</div>
-            </div>
-          </div>
-          <button onclick="VeciUI.closeDocViewer()" class="btn btn-ghost btn-sm" style="font-size:18px; padding:4px 10px;">✕</button>
-        </div>
-
-        <!-- Document Tabs -->
-        <div style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
-          ${tabsHtml}
-        </div>
-
-        <!-- Canvas Container -->
-        <div style="flex:1; overflow-y:auto; background:#060D1A; border:1px solid rgba(0,212,232,0.25); border-radius:12px; padding:18px; min-height:360px;">
-          ${canvasHtml}
-        </div>
-
-        <!-- Footer -->
-        <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid rgba(255,255,255,0.08); padding-top:14px; margin-top:14px; flex-wrap:wrap; gap:10px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="badge" style="background:rgba(16,185,129,0.15); color:#10B981; font-size:11px; font-weight:700;">✓ Respaldo Verificado Ley 19.628</span>
-            <button class="btn btn-ghost btn-sm" onclick="VeciUI.downloadSimulatedDoc('${currentDoc.nombre}')">📥 Descargar Copia</button>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center;">
-            <button class="btn btn-ghost btn-sm" onclick="VeciUI.closeDocViewer()">Cerrar Visor</button>
-            ${actionBtnsHtml}
-          </div>
-        </div>
-      </div>
-    `;
-
-    modal.style.display = 'flex';
-  },
-
-  closeDocViewer() {
-    const modal = document.getElementById('veci-global-doc-viewer');
-    if (modal) modal.style.display = 'none';
-  },
-
-  downloadSimulatedDoc(filename) {
-    const content = `REPÚBLICA DE CHILE
-ILUSTRE MUNICIPALIDAD DE PADRE LAS CASAS
-SISTEMA DE GESTIÓN VECIAYUDA
-
-DOCUMENTO DE RESPALDO ACREDITADO
-Archivo: ${filename}
-Fecha de verificación digital: ${new Date().toLocaleString('es-CL')}
-Estado: Conforme a normativa de acreditación domiciliaria municipal.
-`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename || 'documento_respaldo_verificado.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-    this.toast('📥 Descarga iniciada: ' + filename, 'info');
+    this.descargarArchivoPDFDirecto(`Informe_Social_DIDECO_${folio}.pdf`, 'MUNICIPALIDAD DE PADRE LAS CASAS - DIDECO', lines);
   }
 };

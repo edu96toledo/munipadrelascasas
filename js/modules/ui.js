@@ -357,23 +357,44 @@ export const VeciUI = {
   },
 
   downloadSimulatedDoc(filename) {
-    const content = `REPÚBLICA DE CHILE
-ILUSTRE MUNICIPALIDAD DE PADRE LAS CASAS
-SISTEMA DE GESTIÓN VECIAYUDA
+    const cleanName = filename || 'documento_respaldo_verificado.pdf';
+    const isPDF = cleanName.toLowerCase().endsWith('.pdf');
+    const finalFilename = isPDF ? cleanName : (cleanName + '.pdf');
 
-DOCUMENTO DE RESPALDO ACREDITADO
-Archivo: ${filename}
-Fecha de verificación digital: ${new Date().toLocaleString('es-CL')}
-Estado: Conforme a normativa de acreditación domiciliaria municipal.
-`;
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename || 'documento_respaldo_verificado.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-    this.toast('📥 Descarga iniciada: ' + filename, 'info');
+    const lines = [
+      'REPUBLICA DE CHILE - ILUSTRE MUNICIPALIDAD DE PADRE LAS CASAS',
+      'SISTEMA B2G DE GESTION MUNICIPAL VECIAYUDA',
+      '================================================================================',
+      `EXPEDIENTE DE RESPALDO ACREDITADO: ${finalFilename}`,
+      '================================================================================',
+      `FECHA DE DESCARGA: ${new Date().toLocaleString('es-CL')}`,
+      'ESTADO: Conforme a normativa de acreditacion domiciliaria municipal.',
+      'VALIDACION LEGAL: Archivo digital acreditado bajo Ley 19.628 y D.S. N 58.',
+      '',
+      'CONTENIDO DEL DOCUMENTO DE RESPALDO:',
+      `- Titular Acreditado: Maria Isabel Rodriguez Fuentes`,
+      `- Domicilio Verificado: Calle Los Aromos 452, Villa Los Pinos, Padre Las Casas`,
+      `- Emisor del Comprobante: ${finalFilename.includes('luz') ? 'CGE Distribucion S.A.' : finalFilename.includes('arriendo') ? 'Notaria Publica y Conservador de Padre Las Casas' : 'Aguas Araucania S.A.'}`,
+      `- Verificacion: Documento cotejado favorablemente por la directiva de la Junta de Vecinos.`,
+      '',
+      '--------------------------------------------------------------------------------',
+      '** COPIA AUTORIZADA DE PRUEBA - ILUSTRE MUNICIPALIDAD DE PADRE LAS CASAS **',
+      '--------------------------------------------------------------------------------'
+    ];
+
+    if (typeof VeciPDF !== 'undefined' && typeof VeciPDF.descargarArchivoPDFDirecto === 'function') {
+      VeciPDF.descargarArchivoPDFDirecto(finalFilename, 'EXPEDIENTE MUNICIPAL ACREDITADO', lines);
+    } else {
+      const blob = new Blob([lines.join('\n')], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = finalFilename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000);
+      this.toast('📥 Descargando ' + finalFilename + ' en tu computadora.', 'success');
+    }
   }
 };
 
