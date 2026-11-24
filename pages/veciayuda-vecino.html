@@ -189,25 +189,26 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ---- hamburger ---- */
-    .hamburger {
+    /* ---- Mobile Top Bar & Responsive Navigation ---- */
+    .mobile-top-bar {
       display: none;
-      position: fixed;
-      top: 16px; left: 16px;
-      z-index: 999;
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: var(--r-md);
-      width: 44px; height: 44px;
-      cursor: pointer;
+    }
+    .hamburger-btn {
+      display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 5px;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      width: 38px; height: 38px;
+      cursor: pointer;
+      padding: 0;
     }
-    .hamburger span {
+    .hamburger-btn span {
       display: block;
-      width: 20px; height: 2px;
+      width: 18px; height: 2px;
       background: var(--text-primary);
       border-radius: 2px;
       transition: var(--transition);
@@ -215,18 +216,105 @@
     .sidebar-overlay {
       display: none;
       position: fixed; inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 199;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 999;
     }
     @media (max-width: 768px) {
-      .hamburger { display: flex; }
-      .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
-      .sidebar.open { transform: translateX(0); }
-      .sidebar-overlay.show { display: block; }
-      .main-content { margin-left: 0 !important; }
-      .welcome-header { flex-direction: column; align-items: flex-start; gap: var(--sp-md); }
+      .mobile-top-bar {
+        display: flex;
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 58px;
+        background: #0B132B;
+        border-bottom: 1px solid var(--border);
+        padding: 0 var(--sp-md);
+        justify-content: space-between;
+        align-items: center;
+        z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      }
+      .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 1001;
+        position: fixed;
+        top: 0; bottom: 0; left: 0;
+        width: 280px;
+        max-width: 85vw;
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-overlay.show {
+        display: block;
+      }
+      .main-content {
+        margin-left: 0 !important;
+        padding-top: calc(58px + var(--sp-lg)) !important;
+        padding-left: var(--sp-md) !important;
+        padding-right: var(--sp-md) !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+      }
+      .welcome-header {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: var(--sp-md) !important;
+        padding: var(--sp-lg) !important;
+      }
+      .btn-new-request {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        white-space: normal !important;
+        text-align: center !important;
+        justify-content: center !important;
+        padding: 12px 14px !important;
+      }
       .wizard-step .step-label { display: none; }
       .wizard-step::after { display: none; }
+      .wizard-steps { justify-content: space-between; width: 100%; gap: 6px; }
+
+      /* Tarjeta Certificado Oficial Responsiva */
+      .cert-card-top {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: var(--sp-md) !important;
+      }
+      .cert-card-title-group {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: var(--sp-sm) !important;
+      }
+      .cert-card-actions {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 8px !important;
+      }
+      .cert-card-actions .btn {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        text-align: center !important;
+        justify-content: center !important;
+      }
+      .cert-details-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+      }
+
+      /* Tabla Historial Responsiva con Scroll Táctil */
+      .table-wrapper {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--r-md) !important;
+      }
+      .data-table {
+        min-width: 620px !important;
+      }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -234,10 +322,21 @@
 <body>
 <div class="bg-mesh"></div>
 
-<!-- Hamburger -->
-<button class="hamburger" id="hamburger" aria-label="Abrir menú">
-  <span></span><span></span><span></span>
-</button>
+<!-- TOP NAVBAR FIJA PARA MÓVILES (Evita superposición con el contenido) -->
+<header class="mobile-top-bar" id="mobile-top-bar">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <button class="hamburger-btn" id="hamburger" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="width:30px; height:30px; border-radius:8px; background:var(--gradient-main); display:flex; align-items:center; justify-content:center; font-weight:800; font-family:var(--font-brand); font-size:0.85rem; color:#060D1A;">VA</div>
+      <span style="font-family:var(--font-brand); font-weight:700; font-size:1.05rem; color:#fff;">VeciAyuda</span>
+    </div>
+  </div>
+  <a href="veciayuda-perfil.html" style="text-decoration:none; display:flex; align-items:center; gap:6px;" title="Mi Perfil">
+    <div class="user-avatar" style="width:32px; height:32px; font-size:11px;">MR</div>
+  </a>
+</header>
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <!-- ================================================================
@@ -626,8 +725,8 @@
       <div style="background:var(--bg-secondary); border:1.5px solid rgba(16,185,129,0.3); border-radius:var(--r-xl); padding:var(--sp-xl); position:relative; overflow:hidden;">
         <div style="position:absolute; top:0; right:0; width:150px; height:150px; background:radial-gradient(circle, rgba(16,185,129,0.08) 0%, transparent 70%); pointer-events:none;"></div>
         
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:var(--sp-lg); margin-bottom:var(--sp-lg);">
-          <div style="display:flex; gap:var(--sp-md); align-items:flex-start;">
+        <div class="cert-card-top" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:var(--sp-lg); margin-bottom:var(--sp-lg);">
+          <div class="cert-card-title-group" style="display:flex; gap:var(--sp-md); align-items:flex-start;">
             <div style="width:52px; height:52px; border-radius:var(--r-lg); background:rgba(16,185,129,0.15); color:var(--success); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0;">
               📜
             </div>
@@ -642,7 +741,7 @@
             </div>
           </div>
 
-          <div style="display:flex; gap:var(--sp-sm); flex-wrap:wrap;">
+          <div class="cert-card-actions" style="display:flex; gap:var(--sp-sm); flex-wrap:wrap;">
             <a href="#modal-certificado-oficial" class="btn btn-primary btn-sm">
               👁️ Ver Certificado Oficial
             </a>
@@ -656,7 +755,7 @@
         </div>
 
         <!-- DETALLES DEL CERTIFICADO -->
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:var(--sp-md); padding-top:var(--sp-md); border-top:1px solid var(--border); font-size:13px;">
+        <div class="cert-details-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:var(--sp-md); padding-top:var(--sp-md); border-top:1px solid var(--border); font-size:13px;">
           <div>
             <span style="color:var(--text-muted); font-size:11px; text-transform:uppercase; font-weight:700;">Titular:</span>
             <div style="font-weight:600; color:var(--text-primary);">María Isabel Rodríguez Fuentes</div>
@@ -1259,6 +1358,10 @@
     link.addEventListener('click', function () {
       document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
       this.classList.add('active');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar) sidebar.classList.remove('open');
+      if (overlay) overlay.classList.remove('show');
     });
   });
 </script>

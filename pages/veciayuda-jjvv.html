@@ -203,9 +203,21 @@
 <div class="bg-mesh"></div>
 
 <!-- Hamburger -->
-<button class="hamburger" id="hamburger" aria-label="Abrir menú">
-  <span></span><span></span><span></span>
-</button>
+<!-- TOP NAVBAR FIJA PARA MÓVILES (Evita superposición) -->
+<header class="mobile-top-bar" id="mobile-top-bar">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <button class="hamburger-btn" id="hamburger" aria-label="Abrir menú">
+      <span></span><span></span><span></span>
+    </button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div style="width:30px; height:30px; border-radius:8px; background:var(--gradient-main); display:flex; align-items:center; justify-content:center; font-weight:800; font-family:var(--font-brand); font-size:0.85rem; color:#060D1A;">JV</div>
+      <span style="font-family:var(--font-brand); font-weight:700; font-size:1.05rem; color:#fff;">JJVV Villa Los Pinos</span>
+    </div>
+  </div>
+  <a href="veciayuda-perfil.html" style="text-decoration:none; display:flex; align-items:center; gap:6px;">
+    <div class="user-avatar" style="width:32px; height:32px; font-size:11px;">JP</div>
+  </a>
+</header>
 <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <!-- ================================================================
@@ -1211,7 +1223,28 @@
   }
 
   function descargarArchivoDemoVisor() {
-    VeciUI.toast('📥 Descargando archivo de respaldo oficial verificado por la plataforma.', 'info');
+    const r = VeciDB.getRequestByFolio(currentVisorFolio);
+    const docs = (r && r.adjuntos && r.adjuntos.length) ? r.adjuntos : [
+      { nombre: 'boleta_cge_luz_oct2024.pdf', tipo: 'Boleta de Electricidad', size: '1.2 MB' },
+      { nombre: 'contrato_arriendo_vigente.pdf', tipo: 'Contrato de Arriendo Notarial', size: '2.4 MB' }
+    ];
+    const docActual = docs[currentVisorFileIdx] || docs[0];
+    const fileName = docActual ? docActual.nombre : 'documento_respaldo.pdf';
+
+    if (typeof VeciUI !== 'undefined' && typeof VeciUI.downloadSimulatedDoc === 'function') {
+      VeciUI.downloadSimulatedDoc(fileName);
+    } else {
+      const sampleText = `%PDF-1.4\n% MUNICIPALIDAD DE PADRE LAS CASAS - VECIAYUDA\n% Expediente: ${currentVisorFolio}\n% Archivo: ${fileName}\n% Estado: Acreditado conforme`;
+      const blob = new Blob([sampleText], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 300);
+      VeciUI.toast(`📥 Descarga iniciada: ${fileName}`, 'success');
+    }
   }
 
   function abrirModalAprobarDesdeVisor() {
