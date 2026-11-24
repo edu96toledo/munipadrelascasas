@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VeciAyuda — Certificados de Residencia Digitales | Municipalidad Padre Las Casas</title>
-  <meta name="description" content="Plataforma digital para obtener y verificar certificados de residencia en la comuna de Padre Las Casas. Proceso 100% en línea, avalado por la JJVV.">
+  <meta name="description"
+    content="Plataforma digital para obtener y verificar certificados de residencia en la comuna de Padre Las Casas. Proceso 100% en línea, avalado por la JJVV.">
   <link rel="stylesheet" href="css/style.css">
   <script src="js/veciayuda-core.js"></script>
   <style>
@@ -12,6 +14,7 @@
     .validator-section {
       background: var(--bg-secondary);
     }
+
     .validator-box {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -20,11 +23,13 @@
       max-width: 640px;
       margin: 0 auto;
     }
+
     .folio-input-wrap {
       display: flex;
       gap: var(--sp-md);
       margin-bottom: var(--sp-md);
     }
+
     .folio-input-wrap .form-control {
       font-size: 18px;
       padding: 16px 20px;
@@ -32,21 +37,27 @@
       font-family: monospace;
       flex: 1;
     }
+
     .btn-verify {
       padding: 16px 28px;
       font-size: 15px;
       white-space: nowrap;
     }
+
     .result-card {
-      background: rgba(16,185,129,0.06);
-      border: 1.5px solid rgba(16,185,129,0.3);
+      background: rgba(16, 185, 129, 0.06);
+      border: 1.5px solid rgba(16, 185, 129, 0.3);
       border-radius: var(--r-xl);
       padding: var(--sp-xl);
       margin-top: var(--sp-xl);
       display: none;
       animation: modal-in 0.3s ease;
     }
-    .result-card.visible { display: block; }
+
+    .result-card.visible {
+      display: block;
+    }
+
     .result-header {
       display: flex;
       align-items: center;
@@ -55,18 +66,20 @@
       flex-wrap: wrap;
       gap: var(--sp-sm);
     }
+
     .result-title {
       font-family: var(--font-brand);
       font-size: 18px;
       font-weight: 800;
       color: var(--success);
     }
+
     .result-valid-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: rgba(16,185,129,0.15);
-      border: 1px solid rgba(16,185,129,0.4);
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
       color: var(--success);
       font-weight: 700;
       font-size: 12px;
@@ -74,11 +87,13 @@
       padding: 6px 14px;
       border-radius: var(--r-full);
     }
+
     .result-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: var(--sp-md) var(--sp-lg);
     }
+
     .result-field label {
       font-size: 11px;
       font-weight: 700;
@@ -88,19 +103,22 @@
       display: block;
       margin-bottom: 3px;
     }
+
     .result-field span {
       font-size: 14px;
       color: var(--text-primary);
       font-weight: 500;
     }
+
     .result-folio {
       font-family: monospace;
       font-size: 15px;
       color: var(--accent-cyan);
-      background: rgba(0,212,232,0.08);
+      background: rgba(0, 212, 232, 0.08);
       padding: 3px 10px;
       border-radius: var(--r-sm);
     }
+
     .result-legal {
       margin-top: var(--sp-md);
       font-size: 11.5px;
@@ -109,6 +127,7 @@
       border-top: 1px solid var(--border);
       padding-top: var(--sp-md);
     }
+
     .or-divider {
       display: flex;
       align-items: center;
@@ -117,12 +136,15 @@
       font-size: 12px;
       color: var(--text-muted);
     }
-    .or-divider::before, .or-divider::after {
+
+    .or-divider::before,
+    .or-divider::after {
       content: '';
       flex: 1;
       height: 1px;
       background: var(--border);
     }
+
     .upload-area-sm {
       border: 2px dashed var(--border);
       border-radius: var(--r-lg);
@@ -130,15 +152,17 @@
       text-align: center;
       cursor: pointer;
       transition: all var(--transition);
-      background: rgba(255,255,255,0.02);
+      background: rgba(255, 255, 255, 0.02);
       font-size: 13px;
       color: var(--text-muted);
     }
+
     .upload-area-sm:hover {
       border-color: var(--accent-cyan);
-      background: rgba(0,212,232,0.04);
+      background: rgba(0, 212, 232, 0.04);
       color: var(--accent-cyan);
     }
+
     .audience-card {
       background: var(--bg-card);
       border: 1px solid var(--border);
@@ -146,11 +170,13 @@
       padding: var(--sp-xl);
       transition: all var(--transition);
     }
+
     .audience-card:hover {
       transform: translateY(-4px);
       border-color: var(--border-hover);
       box-shadow: var(--shadow-glow);
     }
+
     .audience-icon {
       width: 56px;
       height: 56px;
@@ -161,6 +187,7 @@
       font-size: 26px;
       margin-bottom: var(--sp-lg);
     }
+
     .step-icon {
       width: 56px;
       height: 56px;
@@ -173,6 +200,7 @@
       position: relative;
       z-index: 1;
     }
+
     .hero-stats-row {
       display: flex;
       gap: var(--sp-xl);
@@ -181,526 +209,562 @@
       margin-top: var(--sp-xl);
       flex-wrap: wrap;
     }
+
     .hero-stat-item {}
+
     .hero-stat-val {
       font-family: var(--font-brand);
       font-size: 24px;
       font-weight: 800;
     }
+
     .hero-stat-lab {
       font-size: 12px;
       color: var(--text-muted);
     }
+
     @media (max-width: 768px) {
-      .folio-input-wrap { flex-direction: column; }
-      .result-grid { grid-template-columns: 1fr; }
+      .folio-input-wrap {
+        flex-direction: column;
+      }
+
+      .result-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
+
 <body>
-<div class="bg-mesh"></div>
+  <div class="bg-mesh"></div>
 
-<!-- ===== NAVBAR ===== -->
-<nav class="navbar">
-  <a href="index.html" class="navbar-brand">
-    <div class="brand-icon">🏛️</div>
-    <div class="brand-text">
-      <span class="brand-name">VeciAyuda</span>
-      <span class="brand-sub">Municipalidad Padre Las Casas</span>
-    </div>
-  </a>
-
-  <ul class="navbar-nav">
-    <li><a href="index.html" class="nav-link active">Inicio</a></li>
-    <li><a href="#validador" class="nav-link">Validar Folio</a></li>
-    <li><a href="#como-funciona" class="nav-link">Cómo Funciona</a></li>
-
-    <!-- DESPLEGABLE PANELES -->
-    <li class="dropdown">
-      <a href="javascript:void(0)" class="nav-link dropdown-toggle">👥 Paneles VeciAyuda</a>
-      <div class="dropdown-menu">
-        <div class="dropdown-header">Acceso Directo por Rol</div>
-        <a href="pages/veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino (Solicitudes)</a>
-        <a href="pages/veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario Social (DIDECO)</a>
-        <a href="pages/veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de Vecinos</a>
-        <a href="pages/veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Municipal Admin</a>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-header">Gestión de Cuenta</div>
-        <a href="pages/veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil Ciudadano</a>
-        <a href="pages/veciayuda-recuperar.html" class="dropdown-item"><span class="d-icon">🔑</span> Recuperar Contraseña</a>
-        <a href="index.html" class="dropdown-item"><span class="d-icon">🏛️</span> Portal Municipal Principal</a>
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="brand-icon">🏛️</div>
+      <div class="brand-text">
+        <span class="brand-name">VeciAyuda</span>
+        <span class="brand-sub">Municipalidad Padre Las Casas</span>
       </div>
-    </li>
+    </a>
 
-    <li><a href="pages/veciayuda-login.html" class="nav-link">Acceso</a></li>
-  </ul>
+    <ul class="navbar-nav">
+      <li><a href="index.html" class="nav-link active">Inicio</a></li>
+      <li><a href="#validador" class="nav-link">Validar Folio</a></li>
+      <li><a href="#como-funciona" class="nav-link">Cómo Funciona</a></li>
 
-  <div class="navbar-actions">
-    <a href="pages/veciayuda-login.html" class="btn btn-ghost btn-sm">Ingresar</a>
-    <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-sm">Registrarse</a>
+      <!-- DESPLEGABLE PANELES -->
+      <li class="dropdown">
+        <a href="javascript:void(0)" class="nav-link dropdown-toggle">👥 Paneles VeciAyuda</a>
+        <div class="dropdown-menu">
+          <div class="dropdown-header">Acceso Directo por Rol</div>
+          <a href="pages/veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino
+            (Solicitudes)</a>
+          <a href="pages/veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario
+            Social (DIDECO)</a>
+          <a href="pages/veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de
+            Vecinos</a>
+          <a href="pages/veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Municipal
+            Admin</a>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-header">Gestión de Cuenta</div>
+          <a href="pages/veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil
+            Ciudadano</a>
+          <a href="pages/veciayuda-recuperar.html" class="dropdown-item"><span class="d-icon">🔑</span> Recuperar
+            Contraseña</a>
+          <a href="index.html" class="dropdown-item"><span class="d-icon">🏛️</span> Portal Municipal Principal</a>
+        </div>
+      </li>
+
+      <li><a href="pages/veciayuda-login.html" class="nav-link">Acceso</a></li>
+    </ul>
+
+    <div class="navbar-actions">
+      <a href="pages/veciayuda-login.html" class="btn btn-ghost btn-sm">Ingresar</a>
+      <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-sm">Registrarse</a>
+    </div>
+
+    <!-- BOTÓN HAMBURGUESA MÓVIL DESPLEGABLE -->
+    <button class="navbar-toggler" onclick="toggleMobileMenu()" aria-label="Abrir menú desplegable">☰</button>
+  </nav>
+
+  <!-- MENÚ MÓVIL DESPLEGABLE -->
+  <div class="mobile-menu-drawer" id="mobileMenuDrawer">
+    <div
+      style="font-weight:700; color:var(--accent-cyan); font-size:12px; text-transform:uppercase; margin-bottom:8px;">
+      Menú VeciAyuda</div>
+    <a href="index.html" class="dropdown-item"><span class="d-icon">🏠</span> Inicio VeciAyuda</a>
+    <a href="#validador" class="dropdown-item" onclick="toggleMobileMenu()"><span class="d-icon">🔍</span> Validar Folio
+      Certificado</a>
+    <a href="#como-funciona" class="dropdown-item" onclick="toggleMobileMenu()"><span class="d-icon">📋</span> ¿Cómo
+      Funciona?</a>
+    <a href="pages/veciayuda-registro.html" class="dropdown-item"><span class="d-icon">📝</span> Solicitar
+      Certificado</a>
+
+    <div class="dropdown-divider"></div>
+    <div
+      style="font-weight:700; color:var(--accent-cyan); font-size:12px; text-transform:uppercase; margin:12px 0 8px;">
+      Paneles de Gestión</div>
+    <a href="pages/veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino</a>
+    <a href="pages/veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario Social
+      (DIDECO)</a>
+    <a href="pages/veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de Vecinos</a>
+    <a href="pages/veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Administrador</a>
+    <a href="pages/veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil</a>
+    <a href="pages/veciayuda-login.html" class="dropdown-item"><span class="d-icon">🔐</span> Iniciar Sesión</a>
+    <a href="index.html" class="dropdown-item"><span class="d-icon">🏛️</span> Portal Principal</a>
   </div>
 
-  <!-- BOTÓN HAMBURGUESA MÓVIL DESPLEGABLE -->
-  <button class="navbar-toggler" onclick="toggleMobileMenu()" aria-label="Abrir menú desplegable">☰</button>
-</nav>
-
-<!-- MENÚ MÓVIL DESPLEGABLE -->
-<div class="mobile-menu-drawer" id="mobileMenuDrawer">
-  <div style="font-weight:700; color:var(--accent-cyan); font-size:12px; text-transform:uppercase; margin-bottom:8px;">Menú VeciAyuda</div>
-  <a href="index.html" class="dropdown-item"><span class="d-icon">🏠</span> Inicio VeciAyuda</a>
-  <a href="#validador" class="dropdown-item" onclick="toggleMobileMenu()"><span class="d-icon">🔍</span> Validar Folio Certificado</a>
-  <a href="#como-funciona" class="dropdown-item" onclick="toggleMobileMenu()"><span class="d-icon">📋</span> ¿Cómo Funciona?</a>
-  <a href="pages/veciayuda-registro.html" class="dropdown-item"><span class="d-icon">📝</span> Solicitar Certificado</a>
-
-  <div class="dropdown-divider"></div>
-  <div style="font-weight:700; color:var(--accent-cyan); font-size:12px; text-transform:uppercase; margin:12px 0 8px;">Paneles de Gestión</div>
-  <a href="pages/veciayuda-vecino.html" class="dropdown-item"><span class="d-icon">👤</span> Panel Vecino</a>
-  <a href="pages/veciayuda-social.html" class="dropdown-item"><span class="d-icon">🤝</span> Panel Funcionario Social (DIDECO)</a>
-  <a href="pages/veciayuda-jjvv.html" class="dropdown-item"><span class="d-icon">🏘️</span> Panel Junta de Vecinos</a>
-  <a href="pages/veciayuda-admin.html" class="dropdown-item"><span class="d-icon">🛡️</span> Panel Administrador</a>
-  <a href="pages/veciayuda-perfil.html" class="dropdown-item"><span class="d-icon">⚙️</span> Mi Perfil</a>
-  <a href="pages/veciayuda-login.html" class="dropdown-item"><span class="d-icon">🔐</span> Iniciar Sesión</a>
-  <a href="index.html" class="dropdown-item"><span class="d-icon">🏛️</span> Portal Principal</a>
-</div>
-
-<!-- ===== HERO ===== -->
-<section class="hero">
-  <div class="hero-content">
-    <div class="hero-badge">✅ Plataforma B2G Certificada</div>
-    <h1 class="hero-title">
-      Certificados de residencia<br>
-      <span class="gradient-text">100% digitales y verificables</span>
-    </h1>
-    <p class="hero-desc">
-      Obtén tu certificado de residencia avalado por tu Junta de Vecinos sin salir de casa. 
-      Válido legalmente, con código QR de verificación y vigencia de 90 días.
-    </p>
-    <div class="hero-actions">
-      <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-lg">Solicitar mi Certificado →</a>
-      <a href="#validador" class="btn btn-secondary btn-lg">Validar un Folio</a>
-    </div>
-
-    <!-- Mini Stats -->
-    <div class="hero-stats-row">
-      <div class="hero-stat-item">
-        <div class="hero-stat-val" style="color:var(--accent-cyan);">2.847</div>
-        <div class="hero-stat-lab">Certificados emitidos</div>
-      </div>
-      <div class="hero-stat-item">
-        <div class="hero-stat-val" style="color:var(--success);">98%</div>
-        <div class="hero-stat-lab">Autenticidad verificada</div>
-      </div>
-      <div class="hero-stat-item">
-        <div class="hero-stat-val" style="color:var(--accent-blue);">&lt; 3 días</div>
-        <div class="hero-stat-lab">Promedio de emisión</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Floating Cards -->
-  <div class="hero-visual">
-    <div class="hero-card-float card-1">
-      <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.06em;">Certificado Emitido</div>
-      <div class="result-folio" style="margin-bottom:8px;">CERT-2024-00847</div>
-      <div class="badge badge-resolved" style="margin-bottom:8px;">✓ Vigente</div>
-      <div style="font-size:12px; color:var(--text-secondary);">JJVV Villa Los Pinos · Sector Urbano</div>
-      <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Válido hasta: 15/03/2025</div>
-    </div>
-    <div class="hero-card-float card-2">
-      <div style="font-size:12px; color:var(--accent-cyan); font-weight:700; margin-bottom:6px;">🔐 QR Verificado</div>
-      <div style="font-size:13px; color:var(--text-secondary);">Autenticidad confirmada</div>
-      <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Escaneado hace 2 min</div>
-    </div>
-    <div class="hero-card-float card-3">
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
-        <div class="stat-icon green" style="width:36px; height:36px; font-size:16px; margin:0;">📋</div>
-        <div>
-          <div style="font-size:11px; color:var(--text-muted);">Esta semana</div>
-          <div style="font-weight:700; font-size:15px;">+124 certificados</div>
-        </div>
-      </div>
-      <div class="chart-bars" style="height:60px;">
-        <div class="chart-bar" style="height:50%;"></div>
-        <div class="chart-bar" style="height:75%;"></div>
-        <div class="chart-bar" style="height:60%;"></div>
-        <div class="chart-bar" style="height:95%;"></div>
-        <div class="chart-bar" style="height:70%;"></div>
-        <div class="chart-bar" style="height:85%;"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== CÓMO FUNCIONA ===== -->
-<section class="section" id="como-funciona" style="background:var(--bg-secondary);">
-  <div class="section-header">
-    <div class="section-tag">Proceso Simple</div>
-    <h2 class="section-title">¿Cómo funciona VeciAyuda?</h2>
-    <p class="section-desc">En cuatro pasos simples obtienes tu certificado de residencia digital, avalado por tu Junta de Vecinos.</p>
-  </div>
-
-  <div class="steps" style="max-width:1000px; margin:0 auto;">
-    <div class="step">
-      <div class="step-icon" style="background:rgba(0,212,232,0.12);">👤</div>
-      <div class="step-num active">1</div>
-      <div class="step-label"><strong>Regístrate</strong><br>Crea tu cuenta con tu RUN y datos de residencia</div>
-    </div>
-    <div class="step">
-      <div class="step-icon" style="background:rgba(59,123,248,0.12);">📋</div>
-      <div class="step-num active">2</div>
-      <div class="step-label"><strong>Solicita</strong><br>Completa el formulario de solicitud de certificado</div>
-    </div>
-    <div class="step">
-      <div class="step-icon" style="background:rgba(124,58,237,0.12);">🏘️</div>
-      <div class="step-num active">3</div>
-      <div class="step-label"><strong>JJVV Revisa</strong><br>Tu Junta de Vecinos valida y aprueba la solicitud</div>
-    </div>
-    <div class="step">
-      <div class="step-icon" style="background:rgba(16,185,129,0.12);">📄</div>
-      <div class="step-num active">4</div>
-      <div class="step-label"><strong>Descarga PDF</strong><br>Obtén tu certificado con QR de verificación</div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== VALIDADOR DE FOLIOS ===== -->
-<section class="section validator-section" id="validador">
-  <div class="section-header">
-    <div class="section-tag">Verificación Pública</div>
-    <h2 class="section-title" style="font-size:clamp(26px,3.5vw,42px);">Verifica la autenticidad<br>de un certificado</h2>
-    <p class="section-desc">Cualquier institución o persona puede verificar gratuitamente la validez de un certificado emitido por VeciAyuda ingresando su folio o escaneando el código QR.</p>
-  </div>
-
-  <div class="validator-box">
-    <!-- Input folio -->
-    <div class="form-group" style="margin-bottom:var(--sp-sm);">
-      <label class="form-label" style="font-size:12px;">Número de folio del certificado</label>
-      <div class="folio-input-wrap">
-        <input
-          type="text"
-          class="form-control"
-          id="folio-input"
-          placeholder="Ej: CERT-2024-00123"
-          maxlength="20"
-        >
-        <button class="btn btn-primary btn-verify" onclick="verificarFolio()">
-          🔍 Verificar
-        </button>
-      </div>
-      <p class="form-hint">El folio figura en la esquina superior derecha del certificado emitido.</p>
-    </div>
-
-    <div class="or-divider">O sube una imagen del código QR</div>
-
-    <div class="upload-area-sm" onclick="document.getElementById('qr-upload').click()">
-      📷 Haz clic para cargar imagen del QR
-      <input type="file" id="qr-upload" accept="image/*" style="display:none" onchange="simularQR()">
-    </div>
-
-    <!-- Resultado: Certificado VÁLIDO CON DATOS REALES DE VECIDB -->
-    <div class="result-card" id="result-card">
-      <div class="result-header">
-        <div class="result-title">✅ Certificado Auténtico Encontrado</div>
-        <div class="result-valid-badge" id="res-badge">✅ CERTIFICADO VÁLIDO — VIGENTE</div>
-      </div>
-
-      <!-- Sello Marca de Agua de Prueba -->
-      <div style="background:rgba(239,68,68,0.1); border:1.5px dashed rgba(239,68,68,0.4); border-radius:var(--r-md); padding:10px 14px; margin-bottom:var(--sp-md); font-size:12px; color:#FCA5A5; font-weight:700; text-align:center;">
-        ⚠️ CERTIFICADO DE PRUEBA — SIN VALIDEZ LEGAL (ENTORNO DEMO MUNICIPAL)
-      </div>
-
-      <div class="result-grid">
-        <div class="result-field">
-          <label>Nombre del Titular</label>
-          <span id="res-nombre">María Isabel Rodríguez Fuentes</span>
-        </div>
-        <div class="result-field">
-          <label>RUN</label>
-          <span id="res-run" style="font-family:monospace;">12.345.678-9</span>
-        </div>
-        <div class="result-field">
-          <label>Dirección Acreditada</label>
-          <span id="res-dir">Calle Los Aromos 452, Villa Los Pinos, Padre Las Casas</span>
-        </div>
-        <div class="result-field">
-          <label>Junta de Vecinos Emisora</label>
-          <span id="res-jjvv">JJVV Villa Los Pinos</span>
-        </div>
-        <div class="result-field">
-          <label>Fecha de Emisión</label>
-          <span id="res-emision">03 de octubre de 2024</span>
-        </div>
-        <div class="result-field">
-          <label>Vigencia Hasta</label>
-          <span id="res-vence">03 de enero de 2025</span>
-        </div>
-        <div class="result-field" style="grid-column: 1 / -1;">
-          <label>Folio del Certificado</label>
-          <span class="result-folio" id="folio-result-display">PLC-CR-2024-00065</span>
-        </div>
-      </div>
-
-      <div style="margin-top:var(--sp-lg); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-        <button class="btn btn-primary btn-sm" id="btn-download-from-val" onclick="descargarDesdeValidador()">
-          📥 Descargar PDF de Prueba (Con Marca de Agua)
-        </button>
-        <span style="font-size:11.5px; color:var(--text-muted);">Verificado con el Registro Municipal de Folios</span>
-      </div>
-
-      <div class="result-legal">
-        ⚖️ Este certificado fue emitido mediante la plataforma VeciAyuda de la Ilustre Municipalidad de Padre Las Casas, Región de La Araucanía. 
-        La información ha sido validada por la Junta de Vecinos correspondiente de conformidad con la Ley N° 19.418.
-      </div>
-    </div>
-
-    <!-- Resultado: NO encontrado (oculto por defecto) -->
-    <div id="result-not-found" style="display:none; margin-top:var(--sp-xl);">
-      <div class="alert alert-danger">
-        <span class="alert-icon">❌</span>
-        <div>
-          <strong>Folio no encontrado.</strong><br>
-          El certificado con el folio ingresado no existe en nuestra base de datos o ha sido revocado. 
-          Verifica que el número sea correcto o contacta a la municipalidad.
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== PARA QUIÉN ES VECIAYUDA ===== -->
-<section class="section" style="background:var(--bg-primary);">
-  <div class="section-header">
-    <div class="section-tag">Usuarios del sistema</div>
-    <h2 class="section-title">¿Para quién es VeciAyuda?</h2>
-    <p class="section-desc">Una plataforma diseñada para toda la comunidad de Padre Las Casas, con acceso diferenciado según el rol de cada usuario.</p>
-  </div>
-
-  <div class="grid-3" style="max-width:1100px; margin:0 auto;">
-    <!-- Vecinos -->
-    <div class="audience-card">
-      <div class="audience-icon" style="background:rgba(0,212,232,0.12);">🏠</div>
-      <h3 class="feature-title">Vecinos</h3>
-      <p class="feature-desc" style="margin-bottom:var(--sp-lg);">
-        Registra tu residencia, solicita certificados digitales y descarga tus documentos en formato PDF con código QR de verificación, sin colas ni trámites presenciales.
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-badge">✅ Plataforma B2G Certificada</div>
+      <h1 class="hero-title">
+        Certificados de residencia<br>
+        <span class="gradient-text">100% digitales y verificables</span>
+      </h1>
+      <p class="hero-desc">
+        Obtén tu certificado de residencia avalado por tu Junta de Vecinos sin salir de casa.
+        Válido legalmente, con código QR de verificación y vigencia de 90 días.
       </p>
-      <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-secondary);">
-        <li>✓ Solicitar certificado de residencia</li>
-        <li>✓ Descargar documentos en PDF</li>
-        <li>✓ Historial de solicitudes</li>
-        <li>✓ Notificaciones por correo</li>
-      </ul>
-      <div style="margin-top:var(--sp-lg);">
-        <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-sm">Crear cuenta →</a>
+      <div class="hero-actions">
+        <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-lg">Solicitar mi Certificado →</a>
+        <a href="#validador" class="btn btn-secondary btn-lg">Validar un Folio</a>
       </div>
-    </div>
 
-    <!-- JJVV -->
-    <div class="audience-card">
-      <div class="audience-icon" style="background:rgba(59,123,248,0.12);">🏘️</div>
-      <h3 class="feature-title">Juntas de Vecinos</h3>
-      <p class="feature-desc" style="margin-bottom:var(--sp-lg);">
-        Revisa y aprueba las solicitudes de tus vecinos desde un panel de control intuitivo. Lleva el registro de tu comunidad de manera digital y eficiente.
-      </p>
-      <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-secondary);">
-        <li>✓ Bandeja de solicitudes</li>
-        <li>✓ Aprobar o rechazar con observaciones</li>
-        <li>✓ Padrón digital de vecinos</li>
-        <li>✓ Reportes mensuales automáticos</li>
-      </ul>
-      <div style="margin-top:var(--sp-lg);">
-        <a href="pages/veciayuda-login.html" class="btn btn-secondary btn-sm">Acceso JJVV →</a>
-      </div>
-    </div>
-
-    <!-- Municipal -->
-    <div class="audience-card">
-      <div class="audience-icon" style="background:rgba(124,58,237,0.12);">🏛️</div>
-      <h3 class="feature-title">Administración Municipal</h3>
-      <p class="feature-desc" style="margin-bottom:var(--sp-lg);">
-        Supervisa toda la plataforma, gestiona las Juntas de Vecinos registradas, accede a estadísticas comunales y configura los parámetros del sistema.
-      </p>
-      <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-secondary);">
-        <li>✓ Dashboard de indicadores comunales</li>
-        <li>✓ Gestión de JJVV habilitadas</li>
-        <li>✓ Auditoría completa del sistema</li>
-        <li>✓ Reportes para transparencia</li>
-      </ul>
-      <div style="margin-top:var(--sp-lg);">
-        <a href="pages/veciayuda-login.html" class="btn btn-ghost btn-sm">Acceso Municipal →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== FOOTER ===== -->
-<footer class="site-footer">
-  <div class="footer-grid" style="max-width:1200px; margin:0 auto;">
-    <div>
-      <div class="flex items-center gap-md">
-        <div class="brand-icon">🏛️</div>
-        <div class="brand-text">
-          <span class="brand-name">VeciAyuda</span>
-          <span class="brand-sub">Municipalidad Padre Las Casas</span>
+      <!-- Mini Stats -->
+      <div class="hero-stats-row">
+        <div class="hero-stat-item">
+          <div class="hero-stat-val" style="color:var(--accent-cyan);">2.847</div>
+          <div class="hero-stat-lab">Certificados emitidos</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-val" style="color:var(--success);">98%</div>
+          <div class="hero-stat-lab">Autenticidad verificada</div>
+        </div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-val" style="color:var(--accent-blue);">&lt; 3 días</div>
+          <div class="hero-stat-lab">Promedio de emisión</div>
         </div>
       </div>
-      <p class="footer-brand-desc">Plataforma digital para la emisión y verificación de certificados de residencia en la comuna de Padre Las Casas, Región de La Araucanía.</p>
     </div>
-    <div>
-      <div class="footer-title">Ciudadanos</div>
-      <ul class="footer-links">
-        <li><a href="pages/veciayuda-registro.html">Crear cuenta</a></li>
-        <li><a href="pages/veciayuda-login.html">Iniciar sesión</a></li>
-        <li><a href="#validador">Validar certificado</a></li>
-        <li><a href="#como-funciona">Cómo funciona</a></li>
-      </ul>
+
+    <!-- Floating Cards -->
+    <div class="hero-visual">
+      <div class="hero-card-float card-1">
+        <div
+          style="font-size:11px; color:var(--text-muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.06em;">
+          Certificado Emitido</div>
+        <div class="result-folio" style="margin-bottom:8px;">CERT-2024-00847</div>
+        <div class="badge badge-resolved" style="margin-bottom:8px;">✓ Vigente</div>
+        <div style="font-size:12px; color:var(--text-secondary);">JJVV Villa Los Pinos · Sector Urbano</div>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">Válido hasta: 15/03/2025</div>
+      </div>
+      <div class="hero-card-float card-2">
+        <div style="font-size:12px; color:var(--accent-cyan); font-weight:700; margin-bottom:6px;">🔐 QR Verificado
+        </div>
+        <div style="font-size:13px; color:var(--text-secondary);">Autenticidad confirmada</div>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">Escaneado hace 2 min</div>
+      </div>
+      <div class="hero-card-float card-3">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+          <div class="stat-icon green" style="width:36px; height:36px; font-size:16px; margin:0;">📋</div>
+          <div>
+            <div style="font-size:11px; color:var(--text-muted);">Esta semana</div>
+            <div style="font-weight:700; font-size:15px;">+124 certificados</div>
+          </div>
+        </div>
+        <div class="chart-bars" style="height:60px;">
+          <div class="chart-bar" style="height:50%;"></div>
+          <div class="chart-bar" style="height:75%;"></div>
+          <div class="chart-bar" style="height:60%;"></div>
+          <div class="chart-bar" style="height:95%;"></div>
+          <div class="chart-bar" style="height:70%;"></div>
+          <div class="chart-bar" style="height:85%;"></div>
+        </div>
+      </div>
     </div>
-    <div>
-      <div class="footer-title">Institucional</div>
-      <ul class="footer-links">
-        <li><a href="pages/veciayuda-login.html">Acceso JJVV</a></li>
-        <li><a href="pages/veciayuda-login.html">Acceso Municipal</a></li>
-        <li><a href="#">Términos de Uso</a></li>
-        <li><a href="#">Política de Privacidad</a></li>
-      </ul>
+  </section>
+
+  <!-- ===== CÓMO FUNCIONA ===== -->
+  <section class="section" id="como-funciona" style="background:var(--bg-secondary);">
+    <div class="section-header">
+      <div class="section-tag">Proceso Simple</div>
+      <h2 class="section-title">¿Cómo funciona VeciAyuda?</h2>
+      <p class="section-desc">En cuatro pasos simples obtienes tu certificado de residencia digital, avalado por tu
+        Junta de Vecinos.</p>
     </div>
-    <div>
-      <div class="footer-title">Contacto</div>
-      <ul class="footer-links">
-        <li><a href="#">veciayuda@padrelascasas.cl</a></li>
-        <li><a href="#">Mesa de Ayuda: +56 45 2 XXX XXX</a></li>
-        <li><a href="index.html">Portal Municipal</a></li>
-        <li><a href="#">Transparencia</a></li>
-      </ul>
+
+    <div class="steps" style="max-width:1000px; margin:0 auto;">
+      <div class="step">
+        <div class="step-icon" style="background:rgba(0,212,232,0.12);">👤</div>
+        <div class="step-num active">1</div>
+        <div class="step-label"><strong>Regístrate</strong><br>Crea tu cuenta con tu RUN y datos de residencia</div>
+      </div>
+      <div class="step">
+        <div class="step-icon" style="background:rgba(59,123,248,0.12);">📋</div>
+        <div class="step-num active">2</div>
+        <div class="step-label"><strong>Solicita</strong><br>Completa el formulario de solicitud de certificado</div>
+      </div>
+      <div class="step">
+        <div class="step-icon" style="background:rgba(124,58,237,0.12);">🏘️</div>
+        <div class="step-num active">3</div>
+        <div class="step-label"><strong>JJVV Revisa</strong><br>Tu Junta de Vecinos valida y aprueba la solicitud</div>
+      </div>
+      <div class="step">
+        <div class="step-icon" style="background:rgba(16,185,129,0.12);">📄</div>
+        <div class="step-num active">4</div>
+        <div class="step-label"><strong>Descarga PDF</strong><br>Obtén tu certificado con QR de verificación</div>
+      </div>
     </div>
-  </div>
-  <div class="footer-bottom" style="max-width:1200px; margin:0 auto;">
-    <span>© 2024 VeciAyuda — Municipalidad de Padre Las Casas</span>
-    <span>🔒 Plataforma B2G Certificada · Región de La Araucanía, Chile</span>
-  </div>
-</footer>
+  </section>
 
-<script>
-  // ===== VALIDADOR DE FOLIOS CON VECIDB =====
-  let currentFoundCert = null;
+  <!-- ===== VALIDADOR DE FOLIOS ===== -->
+  <section class="section validator-section" id="validador">
+    <div class="section-header">
+      <div class="section-tag">Verificación Pública</div>
+      <h2 class="section-title" style="font-size:clamp(26px,3.5vw,42px);">Verifica la autenticidad<br>de un certificado
+      </h2>
+      <p class="section-desc">Cualquier institución o persona puede verificar gratuitamente la validez de un certificado
+        emitido por VeciAyuda ingresando su folio o escaneando el código QR.</p>
+    </div>
 
-  function verificarFolio() {
-    const input = document.getElementById('folio-input');
-    const folio = input.value.trim().toUpperCase();
-    const resultCard = document.getElementById('result-card');
-    const resultNotFound = document.getElementById('result-not-found');
+    <div class="validator-box">
+      <!-- Input folio -->
+      <div class="form-group" style="margin-bottom:var(--sp-sm);">
+        <label class="form-label" style="font-size:12px;">Número de folio del certificado</label>
+        <div class="folio-input-wrap">
+          <input type="text" class="form-control" id="folio-input" placeholder="Ej: CERT-2024-00123" maxlength="20">
+          <button class="btn btn-primary btn-verify" onclick="verificarFolio()">
+            🔍 Verificar
+          </button>
+        </div>
+        <p class="form-hint">El folio figura en la esquina superior derecha del certificado emitido.</p>
+      </div>
 
-    resultCard.classList.remove('visible');
-    resultNotFound.style.display = 'none';
+      <div class="or-divider">O sube una imagen del código QR</div>
 
-    if (!folio) {
-      input.style.borderColor = 'var(--danger)';
-      input.focus();
-      setTimeout(() => { input.style.borderColor = ''; }, 2000);
-      return;
-    }
+      <div class="upload-area-sm" onclick="document.getElementById('qr-upload').click()">
+        📷 Haz clic para cargar imagen del QR
+        <input type="file" id="qr-upload" accept="image/*" style="display:none" onchange="simularQR()">
+      </div>
 
-    const btn = document.querySelector('.btn-verify');
-    btn.textContent = '⏳ Buscando en Registro Municipal...';
-    btn.disabled = true;
+      <!-- Resultado: Certificado VÁLIDO CON DATOS REALES DE VECIDB -->
+      <div class="result-card" id="result-card">
+        <div class="result-header">
+          <div class="result-title">✅ Certificado Auténtico Encontrado</div>
+          <div class="result-valid-badge" id="res-badge">✅ CERTIFICADO VÁLIDO — VIGENTE</div>
+        </div>
 
-    setTimeout(() => {
-      btn.textContent = '🔍 Verificar';
-      btn.disabled = false;
+        <!-- Sello Marca de Agua de Prueba -->
+        <div
+          style="background:rgba(239,68,68,0.1); border:1.5px dashed rgba(239,68,68,0.4); border-radius:var(--r-md); padding:10px 14px; margin-bottom:var(--sp-md); font-size:12px; color:#FCA5A5; font-weight:700; text-align:center;">
+          ⚠️ CERTIFICADO DE PRUEBA — SIN VALIDEZ LEGAL (ENTORNO DEMO MUNICIPAL)
+        </div>
 
-      // Buscar en VeciDB
-      const cert = VeciDB.getCertificate(folio);
+        <div class="result-grid">
+          <div class="result-field">
+            <label>Nombre del Titular</label>
+            <span id="res-nombre">María Isabel Rodríguez Fuentes</span>
+          </div>
+          <div class="result-field">
+            <label>RUN</label>
+            <span id="res-run" style="font-family:monospace;">12.345.678-9</span>
+          </div>
+          <div class="result-field">
+            <label>Dirección Acreditada</label>
+            <span id="res-dir">Calle Los Aromos 452, Villa Los Pinos, Padre Las Casas</span>
+          </div>
+          <div class="result-field">
+            <label>Junta de Vecinos Emisora</label>
+            <span id="res-jjvv">JJVV Villa Los Pinos</span>
+          </div>
+          <div class="result-field">
+            <label>Fecha de Emisión</label>
+            <span id="res-emision">03 de octubre de 2024</span>
+          </div>
+          <div class="result-field">
+            <label>Vigencia Hasta</label>
+            <span id="res-vence">03 de enero de 2025</span>
+          </div>
+          <div class="result-field" style="grid-column: 1 / -1;">
+            <label>Folio del Certificado</label>
+            <span class="result-folio" id="folio-result-display">PLC-CR-2024-00065</span>
+          </div>
+        </div>
 
-      if (cert) {
-        currentFoundCert = cert;
-        document.getElementById('folio-result-display').textContent = cert.folio;
-        document.getElementById('res-nombre').textContent = cert.nombre;
-        document.getElementById('res-run').textContent = cert.run;
-        document.getElementById('res-dir').textContent = cert.direccion;
-        document.getElementById('res-jjvv').textContent = cert.jjvv;
-        document.getElementById('res-emision').textContent = cert.fechaEmision;
-        document.getElementById('res-vence').textContent = cert.vigenciaHasta;
+        <div
+          style="margin-top:var(--sp-lg); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <button class="btn btn-primary btn-sm" id="btn-download-from-val" onclick="descargarDesdeValidador()">
+            📥 Descargar PDF de Prueba (Con Marca de Agua)
+          </button>
+          <span style="font-size:11.5px; color:var(--text-muted);">Verificado con el Registro Municipal de Folios</span>
+        </div>
 
-        // Comprobar vigencia
-        const vence = new Date(cert.vigenciaHasta);
-        const hoy = new Date();
-        const badgeEl = document.getElementById('res-badge');
+        <div class="result-legal">
+          ⚖️ Este certificado fue emitido mediante la plataforma VeciAyuda de la Ilustre Municipalidad de Padre Las
+          Casas, Región de La Araucanía.
+          La información ha sido validada por la Junta de Vecinos correspondiente de conformidad con la Ley N° 19.418.
+        </div>
+      </div>
 
-        if (vence >= hoy) {
-          badgeEl.className = 'result-valid-badge';
-          badgeEl.textContent = '✅ CERTIFICADO VÁLIDO — VIGENTE';
+      <!-- Resultado: NO encontrado (oculto por defecto) -->
+      <div id="result-not-found" style="display:none; margin-top:var(--sp-xl);">
+        <div class="alert alert-danger">
+          <span class="alert-icon">❌</span>
+          <div>
+            <strong>Folio no encontrado.</strong><br>
+            El certificado con el folio ingresado no existe en nuestra base de datos o ha sido revocado.
+            Verifica que el número sea correcto o contacta a la municipalidad.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PARA QUIÉN ES VECIAYUDA ===== -->
+  <section class="section" style="background:var(--bg-primary);">
+    <div class="section-header">
+      <div class="section-tag">Usuarios del sistema</div>
+      <h2 class="section-title">¿Para quién es VeciAyuda?</h2>
+      <p class="section-desc">Una plataforma diseñada para toda la comunidad de Padre Las Casas, con acceso diferenciado
+        según el rol de cada usuario.</p>
+    </div>
+
+    <div class="grid-3" style="max-width:1100px; margin:0 auto;">
+      <!-- Vecinos -->
+      <div class="audience-card">
+        <div class="audience-icon" style="background:rgba(0,212,232,0.12);">🏠</div>
+        <h3 class="feature-title">Vecinos</h3>
+        <p class="feature-desc" style="margin-bottom:var(--sp-lg);">
+          Registra tu residencia, solicita certificados digitales y descarga tus documentos en formato PDF con código QR
+          de verificación, sin colas ni trámites presenciales.
+        </p>
+        <ul
+          style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-secondary);">
+          <li>✓ Solicitar certificado de residencia</li>
+          <li>✓ Descargar documentos en PDF</li>
+          <li>✓ Historial de solicitudes</li>
+          <li>✓ Notificaciones por correo</li>
+        </ul>
+        <div style="margin-top:var(--sp-lg);">
+          <a href="pages/veciayuda-registro.html" class="btn btn-primary btn-sm">Crear cuenta →</a>
+        </div>
+      </div>
+
+      <!-- JJVV -->
+      <div class="audience-card">
+        <div class="audience-icon" style="background:rgba(59,123,248,0.12);">🏘️</div>
+        <h3 class="feature-title">Juntas de Vecinos</h3>
+        <p class="feature-desc" style="margin-bottom:var(--sp-lg);">
+          Revisa y aprueba las solicitudes de tus vecinos desde un panel de control intuitivo. Lleva el registro de tu
+          comunidad de manera digital y eficiente.
+        </p>
+        <ul
+          style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-secondary);">
+          <li>✓ Bandeja de solicitudes</li>
+          <li>✓ Aprobar o rechazar con observaciones</li>
+          <li>✓ Padrón digital de vecinos</li>
+          <li>✓ Reportes mensuales automáticos</li>
+        </ul>
+        <div style="margin-top:var(--sp-lg);">
+          <a href="pages/veciayuda-login.html" class="btn btn-secondary btn-sm">Acceso JJVV →</a>
+        </div>
+      </div>
+
+      <!-- Municipal -->
+      <div class="audience-card">
+        <div class="audience-icon" style="background:rgba(124,58,237,0.12);">🏛️</div>
+        <h3 class="feature-title">Administración Municipal</h3>
+        <p class="feature-desc" style="margin-bottom:var(--sp-lg);">
+          Supervisa toda la plataforma, gestiona las Juntas de Vecinos registradas, accede a estadísticas comunales y
+          configura los parámetros del sistema.
+        </p>
+        <ul
+          style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-secondary);">
+          <li>✓ Dashboard de indicadores comunales</li>
+          <li>✓ Gestión de JJVV habilitadas</li>
+          <li>✓ Auditoría completa del sistema</li>
+          <li>✓ Reportes para transparencia</li>
+        </ul>
+        <div style="margin-top:var(--sp-lg);">
+          <a href="pages/veciayuda-login.html" class="btn btn-ghost btn-sm">Acceso Municipal →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-grid" style="max-width:1200px; margin:0 auto;">
+      <div>
+        <div class="flex items-center gap-md">
+          <div class="brand-icon">🏛️</div>
+          <div class="brand-text">
+            <span class="brand-name">VeciAyuda</span>
+            <span class="brand-sub">Municipalidad Padre Las Casas</span>
+          </div>
+        </div>
+        <p class="footer-brand-desc">Plataforma digital para la emisión y verificación de certificados de residencia en
+          la comuna de Padre Las Casas, Región de La Araucanía.</p>
+      </div>
+      <div>
+        <div class="footer-title">Ciudadanos</div>
+        <ul class="footer-links">
+          <li><a href="pages/veciayuda-registro.html">Crear cuenta</a></li>
+          <li><a href="pages/veciayuda-login.html">Iniciar sesión</a></li>
+          <li><a href="#validador">Validar certificado</a></li>
+          <li><a href="#como-funciona">Cómo funciona</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-title">Institucional</div>
+        <ul class="footer-links">
+          <li><a href="pages/veciayuda-login.html">Acceso JJVV</a></li>
+          <li><a href="pages/veciayuda-login.html">Acceso Municipal</a></li>
+          <li><a href="#">Términos de Uso</a></li>
+          <li><a href="#">Política de Privacidad</a></li>
+        </ul>
+      </div>
+      <div>
+        <div class="footer-title">Contacto</div>
+        <ul class="footer-links">
+          <li><a href="#">veciayuda@padrelascasas.cl</a></li>
+          <li><a href="#">Mesa de Ayuda: +56 45 2 XXX XXX</a></li>
+          <li><a href="index.html">Portal Municipal</a></li>
+          <li><a href="#">Transparencia</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom" style="max-width:1200px; margin:0 auto;">
+      <span>© 2024 VeciAyuda — Municipalidad de Padre Las Casas</span>
+      <span>🔒 Plataforma B2G Certificada · Región de La Araucanía, Chile</span>
+    </div>
+  </footer>
+
+  <script>
+    // ===== VALIDADOR DE FOLIOS CON VECIDB =====
+    let currentFoundCert = null;
+
+    function verificarFolio() {
+      const input = document.getElementById('folio-input');
+      const folio = input.value.trim().toUpperCase();
+      const resultCard = document.getElementById('result-card');
+      const resultNotFound = document.getElementById('result-not-found');
+
+      resultCard.classList.remove('visible');
+      resultNotFound.style.display = 'none';
+
+      if (!folio) {
+        input.style.borderColor = 'var(--danger)';
+        input.focus();
+        setTimeout(() => { input.style.borderColor = ''; }, 2000);
+        return;
+      }
+
+      const btn = document.querySelector('.btn-verify');
+      btn.textContent = '⏳ Buscando en Registro Municipal...';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.textContent = '🔍 Verificar';
+        btn.disabled = false;
+
+        // Buscar en VeciDB
+        const cert = VeciDB.getCertificate(folio);
+
+        if (cert) {
+          currentFoundCert = cert;
+          document.getElementById('folio-result-display').textContent = cert.folio;
+          document.getElementById('res-nombre').textContent = cert.nombre;
+          document.getElementById('res-run').textContent = cert.run;
+          document.getElementById('res-dir').textContent = cert.direccion;
+          document.getElementById('res-jjvv').textContent = cert.jjvv;
+          document.getElementById('res-emision').textContent = cert.fechaEmision;
+          document.getElementById('res-vence').textContent = cert.vigenciaHasta;
+
+          // Comprobar vigencia
+          const vence = new Date(cert.vigenciaHasta);
+          const hoy = new Date();
+          const badgeEl = document.getElementById('res-badge');
+
+          if (vence >= hoy) {
+            badgeEl.className = 'result-valid-badge';
+            badgeEl.textContent = '✅ CERTIFICADO VÁLIDO — VIGENTE';
+          } else {
+            badgeEl.className = 'result-valid-badge';
+            badgeEl.style.background = 'rgba(239,68,68,0.15)';
+            badgeEl.style.borderColor = 'rgba(239,68,68,0.4)';
+            badgeEl.style.color = 'var(--danger)';
+            badgeEl.textContent = '⚠️ CERTIFICADO VENCIDO (PLAZO 90 DÍAS EXPIRADO)';
+          }
+
+          resultCard.classList.add('visible');
+          resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else {
-          badgeEl.className = 'result-valid-badge';
-          badgeEl.style.background = 'rgba(239,68,68,0.15)';
-          badgeEl.style.borderColor = 'rgba(239,68,68,0.4)';
-          badgeEl.style.color = 'var(--danger)';
-          badgeEl.textContent = '⚠️ CERTIFICADO VENCIDO (PLAZO 90 DÍAS EXPIRADO)';
+          resultNotFound.style.display = 'block';
+          resultNotFound.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
+      }, 450);
+    }
 
-        resultCard.classList.add('visible');
-        resultCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    function descargarDesdeValidador() {
+      if (currentFoundCert) {
+        VeciPDF.descargarCertificado(currentFoundCert);
       } else {
-        resultNotFound.style.display = 'block';
-        resultNotFound.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        verificarFolio();
       }
-    }, 450);
-  }
-
-  function descargarDesdeValidador() {
-    if (currentFoundCert) {
-      VeciPDF.descargarCertificado(currentFoundCert);
-    } else {
-      verificarFolio();
     }
-  }
 
-  function simularQR() {
-    const input = document.getElementById('folio-input');
-    input.value = 'PLC-CR-2024-00065';
-    setTimeout(() => verificarFolio(), 300);
-  }
+    function simularQR() {
+      const input = document.getElementById('folio-input');
+      input.value = 'PLC-CR-2024-00065';
+      setTimeout(() => verificarFolio(), 300);
+    }
 
-  // Enter para verificar
-  document.getElementById('folio-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') verificarFolio();
-  });
+    // Enter para verificar
+    document.getElementById('folio-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') verificarFolio();
+    });
 
-  // Smooth scroll para anclas
-  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-      const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
+    // Smooth scroll para anclas
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+    // Toggle menú móvil desplegable
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobileMenuDrawer');
+      if (drawer) drawer.classList.toggle('open');
+    }
+
+    // Soporte clic/touch para desplegables
+    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function (e) {
         e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const parent = this.closest('.dropdown');
+        if (parent) parent.classList.toggle('show');
+      });
+    });
+
+    document.addEventListener('click', function (e) {
+      const drawer = document.getElementById('mobileMenuDrawer');
+      const toggler = document.querySelector('.navbar-toggler');
+      if (drawer && drawer.classList.contains('open') && !drawer.contains(e.target) && !toggler.contains(e.target)) {
+        drawer.classList.remove('open');
       }
-    });
-  });
-  // Toggle menú móvil desplegable
-  function toggleMobileMenu() {
-    const drawer = document.getElementById('mobileMenuDrawer');
-    if (drawer) drawer.classList.toggle('open');
-  }
 
-  // Soporte clic/touch para desplegables
-  document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-    toggle.addEventListener('click', function(e) {
-      e.preventDefault();
-      const parent = this.closest('.dropdown');
-      if (parent) parent.classList.toggle('show');
+      document.querySelectorAll('.dropdown.show').forEach(dd => {
+        if (!dd.contains(e.target)) dd.classList.remove('show');
+      });
     });
-  });
-
-  document.addEventListener('click', function(e) {
-    const drawer = document.getElementById('mobileMenuDrawer');
-    const toggler = document.querySelector('.navbar-toggler');
-    if (drawer && drawer.classList.contains('open') && !drawer.contains(e.target) && !toggler.contains(e.target)) {
-      drawer.classList.remove('open');
-    }
-
-    document.querySelectorAll('.dropdown.show').forEach(dd => {
-      if (!dd.contains(e.target)) dd.classList.remove('show');
-    });
-  });
-</script>
+  </script>
 </body>
+
 </html>
