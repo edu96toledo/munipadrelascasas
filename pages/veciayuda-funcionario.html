@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Funcionario Municipal — VeciAyuda Padre Las Casas</title>
+  <meta name="description"
+    content="Panel de gestión, derivación territorial y trazabilidad municipal para inspectores y funcionarios de DIDECO de la Municipalidad de Padre Las Casas.">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="../js/veciayuda-core.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <style>
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: #0B132B;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      border-color: #00D4E8;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .kpi-card.active {
+      border-color: #00D4E8;
+      background: rgba(0, 212, 232, 0.08);
+    }
+
+    .kpi-val {
+      font-size: 28px;
+      font-weight: 900;
+      color: #fff;
+      margin: 6px 0 2px;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #94A9C9;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      margin-bottom: 18px;
+    }
+
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border);
+      color: #94A9C9;
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .filter-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .filter-btn.active {
+      background: #00D4E8;
+      color: #060D1A;
+      border-color: #00D4E8;
+      font-weight: 800;
+    }
+
+    .action-btn-group {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Barra de Navegación -->
+  <nav class="navbar" style="border-bottom:1px solid var(--border); background:rgba(6,13,26,0.95); position:sticky; top:0; z-index:100;">
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center; height:68px;">
+      <a href="../index.html" style="display:flex; align-items:center; gap:12px; text-decoration:none;">
+        <div style="width:40px; height:40px; border-radius:10px; background:linear-gradient(135deg, #3B7BF8, #00D4E8); display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:18px;">
+          CR
+        </div>
+        <div>
+          <div style="font-weight:800; font-size:16px; color:#fff;">VeciAyuda · DIDECO</div>
+          <div style="font-size:11px; color:#94A9C9;">Organizaciones Comunitarias · Funcionario Municipal</div>
+        </div>
+      </a>
+
+      <div style="display:flex; align-items:center; gap:14px;">
+        <div style="text-align:right;" class="hide-mobile">
+          <div style="font-size:13px; font-weight:700; color:#fff;" id="nav-user-name">Carlos Riquelme Sandoval</div>
+          <div style="font-size:11px; color:#00D4E8;">Inspector DIDECO Municipal</div>
+        </div>
+        <a href="veciayuda-verificar.html" class="btn btn-ghost btn-sm" title="Validador público">🔍 Validador</a>
+        <button onclick="cerrarSesionFuncionario()" class="btn btn-ghost btn-sm" style="color:#EF4444;">Cerrar Sesión</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Contenido Principal -->
+  <main class="container" style="padding-top:28px; padding-bottom:60px;">
+
+    <!-- Banner de Bienvenida -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:14px;">
+      <div>
+        <h1 style="font-size:24px; font-weight:900; margin:0 0 6px; color:#fff;">Panel de Gestión Territorial y Derivación</h1>
+        <div style="font-size:13px; color:#94A9C9;">
+          Supervisión de solicitudes ciudadanas, derivación territorial a Juntas de Vecinos y casos DIDECO.
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-ghost btn-sm" onclick="exportarCSVFuncionario()">📥 Exportar Reporte (.CSV)</button>
+      </div>
+    </div>
+
+    <!-- KPIs / Estados de la Máquina de Estados -->
+    <div class="kpi-grid">
+      <div class="kpi-card" id="kpi-ingresadas" onclick="filtrarPorEstado('ingresada')">
+        <div class="kpi-label">📥 Ingresadas (Nuevas)</div>
+        <div class="kpi-val" id="count-ingresadas">0</div>
+        <div style="font-size:11px; color:#00D4E8;">Pendientes de asignación</div>
+      </div>
+
+      <div class="kpi-card" id="kpi-revision" onclick="filtrarPorEstado('en_revision_jjvv')">
+        <div class="kpi-label">🏘️ En Revisión JJVV</div>
+        <div class="kpi-val" id="count-revision">0</div>
+        <div style="font-size:11px; color:#3B7BF8;">En directivas comunitarias</div>
+      </div>
+
+      <div class="kpi-card" id="kpi-dideco" onclick="filtrarPorEstado('derivada_dideco')">
+        <div class="kpi-label">🤝 Derivadas DIDECO</div>
+        <div class="kpi-val" id="count-dideco">0</div>
+        <div style="font-size:11px; color:#EC4899;">Casos sociales vulnerables</div>
+      </div>
+
+      <div class="kpi-card" id="kpi-observadas" onclick="filtrarPorEstado('observada')">
+        <div class="kpi-label">⚠️ Observadas</div>
+        <div class="kpi-val" id="count-observadas">0</div>
+        <div style="font-size:11px; color:#F59E0B;">En corrección por vecino</div>
+      </div>
+
+      <div class="kpi-card" id="kpi-aprobadas" onclick="filtrarPorEstado('aprobada')">
+        <div class="kpi-label">✅ Certificados Emitidos</div>
+        <div class="kpi-val" id="count-aprobadas">0</div>
+        <div style="font-size:11px; color:#10B981;">Con Folio y QR legal</div>
+      </div>
+    </div>
+
+    <!-- Buscador y Filtros -->
+    <div style="background:#0B132B; border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:24px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:14px; margin-bottom:16px; flex-wrap:wrap;">
+        <!-- Pestañas -->
+        <div class="filter-tabs" id="filter-tabs-container">
+          <button class="filter-btn active" onclick="filtrarPorEstado('todos')">Todas las Solicitudes</button>
+          <button class="filter-btn" onclick="filtrarPorEstado('ingresada')">📥 Ingresadas</button>
+          <button class="filter-btn" onclick="filtrarPorEstado('en_revision_jjvv')">🏘️ En JJVV</button>
+          <button class="filter-btn" onclick="filtrarPorEstado('derivada_dideco')">🤝 DIDECO Social</button>
+          <button class="filter-btn" onclick="filtrarPorEstado('observada')">⚠️ Observadas</button>
+          <button class="filter-btn" onclick="filtrarPorEstado('aprobada')">✅ Aprobadas</button>
+          <button class="filter-btn" onclick="filtrarPorEstado('rechazada')">❌ Rechazadas</button>
+        </div>
+
+        <!-- Buscador -->
+        <div style="min-width:240px; position:relative;">
+          <input type="text" id="filtro-busqueda" class="form-input" placeholder="🔍 Buscar por Folio, RUN o Nombre..." oninput="ejecutarFiltroFuncionario()" style="padding:8px 14px; font-size:13px;" />
+        </div>
+      </div>
+
+      <!-- Tabla de Solicitudes -->
+      <div style="overflow-x:auto;">
+        <table class="table" style="width:100%; font-size:13px;">
+          <thead>
+            <tr>
+              <th>Folio</th>
+              <th>Solicitante</th>
+              <th>RUN</th>
+              <th>Dirección Declarada</th>
+              <th>Junta de Vecinos</th>
+              <th>Motivo</th>
+              <th>Estado Actual</th>
+              <th>Fecha</th>
+              <th style="text-align:right;">Acciones de Gestión</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-funcionario-tbody">
+            <!-- JS populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL: DERIVAR A JJVV -->
+  <div class="modal-overlay" id="modal-derivar-jjvv">
+    <div class="modal-box" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 class="modal-title" style="margin:0;">🔄 Derivar Solicitud a Junta de Vecinos</h3>
+        <button onclick="cerrarModal('modal-derivar-jjvv')" class="btn btn-ghost btn-sm">✕</button>
+      </div>
+
+      <div style="font-size:13px; color:#94A9C9; margin-bottom:16px;">
+        Asignar solicitud <strong id="derivar-modal-folio" style="color:#00D4E8;">—</strong> a la directiva comunitaria correspondiente a su territorio.
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Seleccionar Junta de Vecinos de Destino *</label>
+        <select id="select-jjvv-destino" class="form-select" required>
+          <!-- JS populated -->
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:18px;">
+        <label class="form-label">Observaciones o Instrucciones de Derivación</label>
+        <textarea id="txt-notas-derivacion" class="form-input" rows="3" placeholder="Ej: Se coteja dirección en calle Los Aromos correspondiente a la Unidad Vecinal N° 14..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="cerrarModal('modal-derivar-jjvv')">Cancelar</button>
+        <button class="btn btn-primary" onclick="confirmarDerivacionJJVV()" style="font-weight:700;">
+          🔄 Confirmar Derivación a JJVV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DERIVAR A DIDECO SOCIAL -->
+  <div class="modal-overlay" id="modal-derivar-dideco">
+    <div class="modal-box" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h3 class="modal-title" style="margin:0; color:#EC4899;">🤝 Derivar Caso a Trabajo Social (DIDECO)</h3>
+        <button onclick="cerrarModal('modal-derivar-dideco')" class="btn btn-ghost btn-sm">✕</button>
+      </div>
+
+      <div style="font-size:13px; color:#94A9C9; margin-bottom:16px;">
+        Enviar expediente de <strong id="dideco-modal-folio" style="color:#EC4899;">—</strong> a la Asistente Social (Lic. Camila San Martín) para informe sociohabitacional.
+      </div>
+
+      <div class="form-group" style="margin-bottom:14px;">
+        <label class="form-label">Motivo de la Derivación Social *</label>
+        <select id="select-motivo-dideco" class="form-select">
+          <option value="vulnerabilidad">Alta Vulnerabilidad Social (Tramo RSH 40%)</option>
+          <option value="sin_jjvv">Sector sin Junta de Vecinos activa / Zona rural no catastrada</option>
+          <option value="visita">Requiere Visita a Terreno para constatación de morada</option>
+          <option value="subsidio">Postulación prioritaria a Subsidio Habitacional SERVIU</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="margin-bottom:18px;">
+        <label class="form-label">Antecedentes Clínicos / Familiares para la Trabajadora Social</label>
+        <textarea id="txt-notas-dideco" class="form-input" rows="3" placeholder="Indicar antecedentes socioeconómicos relevantes..."></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="cerrarModal('modal-derivar-dideco')">Cancelar</button>
+        <button class="btn btn-primary" style="background:#EC4899; border-color:#EC4899;" onclick="confirmarDerivacionDIDECO()">
+          🤝 Derivar a Asistente Social DIDECO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: AUDITORÍA Y TRAZABILIDAD (LÍNEA DE TIEMPO) -->
+  <div class="modal-overlay" id="modal-auditoria-timeline">
+    <div class="modal-box" style="max-width:620px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px;">
+        <div>
+          <h3 class="modal-title" style="margin:0;">📜 Trazabilidad y Auditoría Legal</h3>
+          <div style="font-size:12px; color:#94A9C9;" id="timeline-folio-subtitle">Folio: —</div>
+        </div>
+        <button onclick="cerrarModal('modal-auditoria-timeline')" class="btn btn-ghost btn-sm">✕</button>
+      </div>
+
+      <div id="timeline-container" style="max-height:60vh; overflow-y:auto; padding-right:6px;">
+        <!-- JS populated -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Script Funcionario -->
+  <script>
+    let currentFilterEstado = 'todos';
+    let currentTargetFolio = null;
+
+    function initFuncionario() {
+      // 1. AuthGuard
+      if (typeof AuthGuard === 'function') {
+        const ok = AuthGuard(['funcionario', 'admin']);
+        if (!ok) return;
+      }
+
+      // 2. Poblar select JJVV
+      const selJJVV = document.getElementById('select-jjvv-destino');
+      if (selJJVV && typeof VeciDB !== 'undefined') {
+        const jjvvs = VeciDB.getJJVVList();
+        selJJVV.innerHTML = jjvvs.map(j => `<option value="${j.id}">${j.nombre} (${j.sector})</option>`).join('');
+      }
+
+      // 3. Renderizar tabla y KPIs
+      renderFuncionarioDashboard();
+    }
+
+    function renderFuncionarioDashboard() {
+      if (typeof VeciDB === 'undefined') return;
+      const allReqs = VeciDB.getRequests();
+
+      // Contadores de KPIs
+      let countIng = 0, countRev = 0, countDid = 0, countObs = 0, countApr = 0;
+      allReqs.forEach(r => {
+        const st = (r.estado || '').toLowerCase();
+        if (st === 'ingresada' || st === 'pendiente') countIng++;
+        else if (st === 'en_revision_jjvv' || st === 'en_revision') countRev++;
+        else if (st === 'derivada_dideco' || st === 'derivada' || st === 'social') countDid++;
+        else if (st === 'observada') countObs++;
+        else if (st === 'aprobada' || st === 'aprobado') countApr++;
+      });
+
+      document.getElementById('count-ingresadas').textContent = countIng;
+      document.getElementById('count-revision').textContent = countRev;
+      document.getElementById('count-dideco').textContent = countDid;
+      document.getElementById('count-observadas').textContent = countObs;
+      document.getElementById('count-aprobadas').textContent = countApr;
+
+      ejecutarFiltroFuncionario();
+    }
+
+    function filtrarPorEstado(estado) {
+      currentFilterEstado = estado;
+
+      // Actualizar botones
+      const btns = document.querySelectorAll('.filter-btn');
+      btns.forEach(b => b.classList.remove('active'));
+      const activeBtn = Array.from(btns).find(b => b.getAttribute('onclick').includes(estado));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      ejecutarFiltroFuncionario();
+    }
+
+    function ejecutarFiltroFuncionario() {
+      if (typeof VeciDB === 'undefined') return;
+      const q = (document.getElementById('filtro-busqueda').value || '').trim().toLowerCase();
+      let reqs = VeciDB.getRequests();
+
+      // Filtro por estado
+      if (currentFilterEstado !== 'todos') {
+        reqs = reqs.filter(r => {
+          const st = (r.estado || '').toLowerCase();
+          if (currentFilterEstado === 'ingresada') return st === 'ingresada' || st === 'pendiente';
+          if (currentFilterEstado === 'en_revision_jjvv') return st === 'en_revision_jjvv' || st === 'en_revision';
+          if (currentFilterEstado === 'derivada_dideco') return st === 'derivada_dideco' || st === 'derivada' || st === 'social';
+          if (currentFilterEstado === 'observada') return st === 'observada';
+          if (currentFilterEstado === 'aprobada') return st === 'aprobada' || st === 'aprobado';
+          if (currentFilterEstado === 'rechazada') return st === 'rechazada' || st === 'rechazado';
+          return true;
+        });
+      }
+
+      // Filtro por texto
+      if (q) {
+        reqs = reqs.filter(r => 
+          (r.folio || '').toLowerCase().includes(q) ||
+          (r.vecinoNombre || '').toLowerCase().includes(q) ||
+          (r.vecinoRun || '').toLowerCase().includes(q) ||
+          (r.direccion || '').toLowerCase().includes(q)
+        );
+      }
+
+      const tbody = document.getElementById('tabla-funcionario-tbody');
+      if (!tbody) return;
+
+      if (reqs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:24px; color:#94A9C9;">No se encontraron solicitudes con los filtros aplicados.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = reqs.map(r => {
+        // Badges
+        let badge = '';
+        const st = (r.estado || '').toLowerCase();
+        if (st === 'ingresada' || st === 'pendiente') {
+          badge = '<span class="badge" style="background:rgba(0,212,232,0.15); color:#00D4E8; border:1px solid #00D4E8;">📥 Ingresada</span>';
+        } else if (st === 'en_revision_jjvv' || st === 'en_revision') {
+          badge = '<span class="badge" style="background:rgba(59,123,248,0.15); color:#3B7BF8; border:1px solid #3B7BF8;">🏘️ En JJVV</span>';
+        } else if (st === 'derivada_dideco' || st === 'derivada' || st === 'social') {
+          badge = '<span class="badge" style="background:rgba(236,72,153,0.15); color:#EC4899; border:1px solid #EC4899;">🤝 DIDECO Social</span>';
+        } else if (st === 'observada') {
+          badge = '<span class="badge" style="background:rgba(245,158,11,0.15); color:#F59E0B; border:1px solid #F59E0B;">⚠️ Observada</span>';
+        } else if (st === 'aprobada' || st === 'aprobado') {
+          badge = '<span class="badge" style="background:rgba(16,185,129,0.15); color:#10B981; border:1px solid #10B981;">✅ Aprobada</span>';
+        } else {
+          badge = '<span class="badge" style="background:rgba(239,68,68,0.15); color:#EF4444; border:1px solid #EF4444;">❌ Rechazada</span>';
+        }
+
+        // Acciones
+        let acciones = `
+          <button class="btn btn-ghost btn-sm" onclick="VeciUI.openDocViewer('${r.folio}', 0, 'admin')" title="Ver documentos adjuntos">📎 Adjuntos</button>
+          <button class="btn btn-ghost btn-sm" onclick="verAuditoriaSolicitud('${r.folio}')" title="Ver historial">📜</button>
+        `;
+
+        if (st === 'ingresada' || st === 'pendiente') {
+          acciones += `
+            <button class="btn btn-primary btn-sm" onclick="abrirModalDerivarJJVV('${r.folio}')" style="font-size:12px;">🔄 Derivar JJVV</button>
+            <button class="btn btn-sm" style="background:#EC4899; color:#fff;" onclick="abrirModalDerivarDIDECO('${r.folio}')">🤝 DIDECO</button>
+          `;
+        } else if (st === 'en_revision_jjvv') {
+          acciones += `
+            <button class="btn btn-sm" style="background:#EC4899; color:#fff;" onclick="abrirModalDerivarDIDECO('${r.folio}')">🤝 Reasignar DIDECO</button>
+          `;
+        }
+
+        if (st === 'aprobada' || st === 'aprobado') {
+          acciones += `
+            <button class="btn btn-success btn-sm" onclick="descargarCertificadoFuncionario('${r.folioCertificado || r.folio}')">📥 Descargar PDF</button>
+          `;
+        }
+
+        return `
+          <tr>
+            <td><strong style="font-family:monospace; color:#00D4E8;">${r.folio}</strong></td>
+            <td><strong>${r.vecinoNombre}</strong></td>
+            <td style="font-family:monospace;">${r.vecinoRun}</td>
+            <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.direccion}</td>
+            <td>${r.jjvvNombre || 'Por asignar'}</td>
+            <td>${r.motivo}</td>
+            <td>${badge}</td>
+            <td>${r.fechaSolicitud}</td>
+            <td style="text-align:right;">
+              <div class="action-btn-group" style="justify-content:flex-end;">
+                ${acciones}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function abrirModalDerivarJJVV(folio) {
+      currentTargetFolio = folio;
+      document.getElementById('derivar-modal-folio').textContent = folio;
+      document.getElementById('txt-notas-derivacion').value = '';
+      abrirModal('modal-derivar-jjvv');
+    }
+
+    function confirmarDerivacionJJVV() {
+      if (!currentTargetFolio) return;
+      const jjvvId = document.getElementById('select-jjvv-destino').value;
+      const notas = document.getElementById('txt-notas-derivacion').value.trim();
+      const currentUser = VeciAuth.getCurrentUser();
+
+      VeciDB.deriveRequest(currentTargetFolio, jjvvId, currentUser, notas);
+      cerrarModal('modal-derivar-jjvv');
+      VeciUI.toast(`✅ Solicitud ${currentTargetFolio} derivada a ${VeciDB.getJJVVName(jjvvId)}.`, 'success');
+      renderFuncionarioDashboard();
+    }
+
+    function abrirModalDerivarDIDECO(folio) {
+      currentTargetFolio = folio;
+      document.getElementById('dideco-modal-folio').textContent = folio;
+      document.getElementById('txt-notas-dideco').value = '';
+      abrirModal('modal-derivar-dideco');
+    }
+
+    function confirmarDerivacionDIDECO() {
+      if (!currentTargetFolio) return;
+      const motivo = document.getElementById('select-motivo-dideco').value;
+      const notas = document.getElementById('txt-notas-dideco').value.trim();
+      const currentUser = VeciAuth.getCurrentUser();
+
+      // Actualizar a estado derivada_dideco
+      const db = VeciDB.get();
+      const req = (db.requests || []).find(r => r.folio === currentTargetFolio);
+      if (req) {
+        req.estado = 'derivada_dideco';
+        if (!req.historial) req.historial = [];
+        req.historial.unshift({
+          id: 'aud_' + Date.now(),
+          fecha: new Date().toLocaleDateString('es-CL'),
+          hora: new Date().toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }),
+          accion: '🤝 Derivada a Trabajo Social DIDECO',
+          actorNombre: currentUser.nombre,
+          actorRol: 'funcionario',
+          motivo: notas || 'Caso evaluado para intervención social DIDECO'
+        });
+        VeciDB.save(db);
+      }
+
+      cerrarModal('modal-derivar-dideco');
+      VeciUI.toast(`🤝 Solicitud ${currentTargetFolio} derivada a Asistente Social DIDECO.`, 'success');
+      renderFuncionarioDashboard();
+    }
+
+    function verAuditoriaSolicitud(folio) {
+      const req = VeciDB.getRequestByFolio(folio);
+      if (!req) return;
+
+      document.getElementById('timeline-folio-subtitle').textContent = `Folio: ${req.folio} · Solicitante: ${req.vecinoNombre} (${req.vecinoRun})`;
+      const container = document.getElementById('timeline-container');
+
+      const historial = req.historial && req.historial.length ? req.historial : [
+        { fecha: req.fechaSolicitud, accion: '📥 Solicitud ingresada por el vecino', actorNombre: req.vecinoNombre, actorRol: 'vecino' }
+      ];
+
+      container.innerHTML = historial.map(h => `
+        <div style="display:flex; gap:12px; margin-bottom:14px; position:relative;">
+          <div style="width:34px; height:34px; border-radius:50%; background:rgba(0,212,232,0.12); border:1px solid #00D4E8; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0;">
+            ✓
+          </div>
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 14px; flex:1;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="color:#F8FAFC; font-size:13px;">${h.accion}</strong>
+              <span style="font-size:11px; color:#94A9C9;">${h.fecha} ${h.hora || ''}</span>
+            </div>
+            <div style="font-size:12px; color:#00D4E8;">Por: ${h.actorNombre || 'Sistema'} (${(h.actorRol || 'sistema').toUpperCase()})</div>
+            ${h.motivo ? `<div style="font-size:12px; color:#CBD5E1; margin-top:6px; background:rgba(0,0,0,0.2); padding:6px 10px; border-radius:6px;">"${h.motivo}"</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      abrirModal('modal-auditoria-timeline');
+    }
+
+    function descargarCertificadoFuncionario(folio) {
+      const cert = VeciDB.getCertificate(folio);
+      if (cert) {
+        VeciPDF.descargarCertificado(cert);
+      } else {
+        const req = VeciDB.getRequestByFolio(folio);
+        if (req) {
+          VeciPDF.descargarCertificado({
+            folio: req.folioCertificado || ('PLC-CR-2024-' + req.folio.split('-').pop()),
+            nombre: req.vecinoNombre,
+            run: req.vecinoRun,
+            direccion: req.direccion,
+            jjvv: req.jjvvNombre,
+            motivo: req.motivo,
+            fechaEmision: req.fechaResolucion || req.fechaSolicitud,
+            vigenciaHasta: req.vigenciaHasta || '2025-02-28',
+            firmante: 'Carlos Riquelme Sandoval — Inspector DIDECO'
+          });
+        }
+      }
+    }
+
+    function exportarCSVFuncionario() {
+      const reqs = VeciDB.getRequests();
+      let csv = 'FOLIO,VECINO,RUN,DIRECCION,MOTIVO,ESTADO,FECHA,JJVV\n';
+      reqs.forEach(r => {
+        csv += `"${r.folio}","${r.vecinoNombre}","${r.vecinoRun}","${r.direccion}","${r.motivo}","${r.estado}","${r.fechaSolicitud}","${r.jjvvNombre}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `reporte_funcionario_dideco_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      VeciUI.toast('📥 Reporte CSV descargado en tu equipo.', 'success');
+    }
+
+    function abrirModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.add('open');
+    }
+
+    function cerrarModal(id) {
+      const m = document.getElementById(id);
+      if (m) m.classList.remove('open');
+    }
+
+    function cerrarSesionFuncionario() {
+      if (typeof VeciAuth !== 'undefined') {
+        VeciAuth.logout();
+      } else {
+        window.location.href = 'veciayuda-login.html';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', initFuncionario);
+  </script>
+</body>
+
+</html>

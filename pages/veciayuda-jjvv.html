@@ -1511,6 +1511,7 @@ Se ha emitido el Certificado Oficial Folio: ${res.cert.folio}
 
   // ---- Carga Inicial ----
   window.addEventListener('DOMContentLoaded', () => {
+    if (typeof AuthGuard === 'function' && !AuthGuard(['jjvv', 'admin'])) return;
     renderJJVVBandeja();
     renderHistorialJJVV();
 

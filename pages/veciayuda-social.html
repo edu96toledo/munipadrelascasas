@@ -658,6 +658,7 @@
 
   // Carga inicial
   window.addEventListener('DOMContentLoaded', () => {
+    if (typeof AuthGuard === 'function' && !AuthGuard(['social', 'admin'])) return;
     // Validar usuario
     currentUserSocial = VeciAuth.getCurrentUser();
     if (!currentUserSocial || currentUserSocial.rol !== 'social') {

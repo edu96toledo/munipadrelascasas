@@ -1251,6 +1251,7 @@
 
   // Cargar datos al iniciar
   document.addEventListener('DOMContentLoaded', () => {
+    if (typeof AuthGuard === 'function' && !AuthGuard(['vecino', 'admin'])) return;
     renderVecinoData();
   });
 

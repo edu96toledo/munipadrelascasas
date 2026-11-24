@@ -1257,3 +1257,36 @@ const VeciPDF = {
     this.descargarArchivoPDFDirecto(`Informe_Social_DIDECO_${folio}.pdf`, 'MUNICIPALIDAD DE PADRE LAS CASAS - DIDECO', lines);
   }
 };
+
+
+function AuthGuard(allowedRoles = []) {
+  if (typeof window === 'undefined') return true;
+  const user = VeciAuth.getCurrentUser();
+  const inPages = window.location.pathname.includes('/pages/');
+  const loginUrl = inPages ? 'veciayuda-login.html' : 'pages/veciayuda-login.html';
+
+  if (!user) {
+    window.location.replace(loginUrl);
+    return false;
+  }
+
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user.rol)) {
+    let dest = 'veciayuda-vecino.html';
+    if (user.rol === 'admin') dest = 'veciayuda-admin.html';
+    else if (user.rol === 'social') dest = 'veciayuda-social.html';
+    else if (user.rol === 'funcionario') dest = 'veciayuda-funcionario.html';
+    else if (user.rol === 'jjvv') dest = 'veciayuda-jjvv.html';
+
+    const redirectUrl = inPages ? dest : ('pages/' + dest);
+    try {
+      sessionStorage.setItem('VECIAYUDA_FLASH_MSG', JSON.stringify({
+        text: 'Acceso restringido: Redirigido al panel de su rol (' + user.rol.toUpperCase() + ').',
+        type: 'warning'
+      }));
+    } catch (e) {}
+
+    window.location.replace(redirectUrl);
+    return false;
+  }
+  return true;
+}

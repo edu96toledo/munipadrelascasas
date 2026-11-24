@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Validador Oficial de Folios y Certificados — VeciAyuda Padre Las Casas</title>
+  <meta name="description"
+    content="Plataforma de verificación pública de autenticidad y vigencia de Certificados de Residencia e Informes Sociales de la Ilustre Municipalidad de Padre Las Casas.">
+  <link rel="stylesheet" href="../css/style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="../js/veciayuda-core.js"></script>
+  <script type="module" src="../js/app.js"></script>
+  <style>
+    .validador-hero {
+      padding: 50px 20px 30px;
+      text-align: center;
+      background: radial-gradient(circle at 50% 20%, rgba(0, 212, 232, 0.12) 0%, transparent 70%);
+    }
+
+    .val-search-box {
+      max-width: 680px;
+      margin: 24px auto 0;
+      background: #0B132B;
+      border: 1px solid rgba(0, 212, 232, 0.35);
+      border-radius: 16px;
+      padding: 8px 12px;
+      display: flex;
+      gap: 10px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+      align-items: center;
+    }
+
+    .val-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: monospace;
+      padding: 10px 14px;
+      outline: none;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .val-input::placeholder {
+      color: #64748B;
+      font-family: var(--font-body, system-ui, sans-serif);
+      letter-spacing: normal;
+      text-transform: none;
+      font-weight: 400;
+    }
+
+    .val-card {
+      max-width: 760px;
+      margin: 30px auto;
+      background: #0B132B;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 30px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      display: none;
+    }
+
+    .val-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .val-badge.vigente {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10B981;
+      border: 1px solid #10B981;
+    }
+
+    .val-badge.vencido {
+      background: rgba(239, 68, 68, 0.15);
+      color: #EF4444;
+      border: 1px solid #EF4444;
+    }
+
+    .val-badge.no-encontrado {
+      background: rgba(245, 158, 11, 0.15);
+      color: #F59E0B;
+      border: 1px solid #F59E0B;
+    }
+
+    .data-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    @media (max-width: 600px) {
+      .data-grid {
+        grid-template-columns: 1fr;
+      }
+      .val-search-box {
+        flex-direction: column;
+        padding: 14px;
+      }
+      .val-search-box button {
+        width: 100%;
+      }
+    }
+
+    .data-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .data-label {
+      font-size: 11px;
+      color: #94A9C9;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .data-val {
+      font-size: 14px;
+      font-weight: 700;
+      color: #F8FAFC;
+    }
+
+    .privacy-notice {
+      background: rgba(0, 212, 232, 0.06);
+      border: 1px solid rgba(0, 212, 232, 0.25);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #94A9C9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Barra de Navegación -->
+  <nav class="navbar" style="border-bottom:1px solid var(--border); background:rgba(6,13,26,0.95); backdrop-filter:blur(10px); position:sticky; top:0; z-index:100;">
+    <div class="container" style="display:flex; justify-content:space-between; align-items:center; height:68px;">
+      <a href="../index.html" style="display:flex; align-items:center; gap:12px; text-decoration:none;">
+        <div style="width:38px; height:38px; border-radius:10px; background:linear-gradient(135deg, #00D4E8, #3B7BF8); display:flex; align-items:center; justify-content:center; font-weight:900; color:#060D1A; font-size:18px;">
+          VA
+        </div>
+        <div>
+          <div style="font-weight:800; font-size:16px; color:#fff; letter-spacing:-0.5px;">VeciAyuda</div>
+          <div style="font-size:11px; color:#94A9C9;">Padre Las Casas · Validador Oficial</div>
+        </div>
+      </a>
+
+      <div style="display:flex; gap:10px; align-items:center;">
+        <a href="../index.html" class="btn btn-ghost btn-sm">← Inicio</a>
+        <a href="veciayuda-login.html" class="btn btn-primary btn-sm">Iniciar Sesión</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="validador-hero">
+    <div class="container">
+      <div style="display:inline-flex; align-items:center; gap:8px; padding:6px 14px; background:rgba(0,212,232,0.1); border:1px solid rgba(0,212,232,0.3); border-radius:20px; font-size:12px; font-weight:700; color:#00D4E8; margin-bottom:14px;">
+        🔍 Consulta Pública de Autenticidad Documental
+      </div>
+      <h1 style="font-size:32px; font-weight:900; margin:0 0 12px; color:#fff;">Validador Digital de Certificados</h1>
+      <p style="font-size:14px; color:#94A9C9; max-width:620px; margin:0 auto; line-height:1.6;">
+        Verifica en tiempo real la validez legal, fecha de emisión, vigencia y junta de vecinos emisora escaneando el código QR del documento o ingresando su número de folio único.
+      </p>
+
+      <!-- Caja de Búsqueda -->
+      <form class="val-search-box" onsubmit="event.preventDefault(); ejecutarBusqueda();">
+        <span style="font-size:20px; margin-left:6px;">🔎</span>
+        <input type="text" id="input-folio" class="val-input" placeholder="Ej: PLC-CR-2024-00065 o CERT-REQ-2024-089" required autocomplete="off" />
+        <button type="submit" class="btn btn-primary" style="padding:10px 22px; font-weight:700;">Verificar Folio</button>
+      </form>
+
+      <!-- Accesos Rápidos de Ejemplo -->
+      <div style="margin-top:14px; font-size:12px; color:#64748B;">
+        Folios de prueba: 
+        <a href="javascript:void(0)" onclick="consultarFolio('PLC-CR-2024-00065')" style="color:#00D4E8; margin:0 6px; text-decoration:underline;">PLC-CR-2024-00065 (Vigente)</a> ·
+        <a href="javascript:void(0)" onclick="consultarFolio('PLC-INF-2024-0001')" style="color:#00D4E8; margin:0 6px; text-decoration:underline;">PLC-INF-2024-0001 (Social DIDECO)</a> ·
+        <a href="javascript:void(0)" onclick="consultarFolio('PLC-CR-2023-00012')" style="color:#00D4E8; margin:0 6px; text-decoration:underline;">PLC-CR-2023-00012 (Vencido)</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resultado de la Validación -->
+  <main class="container" style="padding-bottom:60px;">
+    <div id="resultado-card" class="val-card">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px;">
+        <div id="val-badge-container">
+          <!-- Badge dinámico -->
+        </div>
+        <div style="font-family:monospace; font-size:13px; color:#94A9C9;" id="val-timestamp">
+          Fecha de cotejo: —
+        </div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:14px; margin-bottom:10px;">
+        <div style="width:50px; height:50px; border-radius:12px; background:rgba(0,212,232,0.12); border:1px solid rgba(0,212,232,0.3); display:flex; align-items:center; justify-content:center; font-size:26px;" id="val-doc-icon">
+          📜
+        </div>
+        <div>
+          <h2 style="font-size:20px; font-weight:900; margin:0; color:#fff;" id="val-doc-titulo">Certificado Oficial de Residencia</h2>
+          <div style="font-size:13px; color:#00D4E8; font-weight:700; font-family:monospace;" id="val-doc-folio">FOLIO: —</div>
+        </div>
+      </div>
+
+      <!-- Datos con Censura Ley 19.628 -->
+      <div class="data-grid" id="val-data-grid">
+        <!-- JS populated -->
+      </div>
+
+      <!-- Sello Ley 19.628 de Protección de Datos -->
+      <div class="privacy-notice">
+        <span style="font-size:20px;">🛡️</span>
+        <div>
+          <strong>Protección de Datos Personales (Ley N° 19.628):</strong>
+          Por resguardo legal y seguridad ciudadana, los datos de identidad y domicilio del titular se exhiben parcialmente censurados. La autenticidad institucional y vigencia del instrumento público se encuentran certificadas.
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.08); flex-wrap:wrap; gap:12px;">
+        <div style="font-size:11px; color:#64748B;">
+          Entidad Emisora: <strong>Ilustre Municipalidad de Padre Las Casas</strong> · Región de La Araucanía
+        </div>
+        <button id="btn-descargar-val" class="btn btn-primary btn-sm" onclick="descargarCopiaVerificada()" style="font-weight:700;">
+          📥 Descargar Copia Oficial Verificada (.PDF)
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Script Lógica Validador -->
+  <script>
+    let currentCertData = null;
+
+    function ejecutarBusqueda() {
+      const folio = document.getElementById('input-folio').value.trim();
+      if (folio) consultarFolio(folio);
+    }
+
+    function consultarFolio(folioIngresado) {
+      const input = document.getElementById('input-folio');
+      if (input) input.value = folioIngresado;
+
+      const q = (folioIngresado || '').trim().toUpperCase();
+      const card = document.getElementById('resultado-card');
+      const badgeBox = document.getElementById('val-badge-container');
+      const timeEl = document.getElementById('val-timestamp');
+      const iconEl = document.getElementById('val-doc-icon');
+      const tituloEl = document.getElementById('val-doc-titulo');
+      const folioEl = document.getElementById('val-doc-folio');
+      const grid = document.getElementById('val-data-grid');
+      const btnDescargar = document.getElementById('btn-descargar-val');
+
+      timeEl.textContent = `Cotejado el: ${new Date().toLocaleString('es-CL')}`;
+
+      // 1. Buscar en VeciDB
+      let cert = null;
+      if (typeof VeciDB !== 'undefined') {
+        cert = VeciDB.getCertificate(q);
+        if (!cert) {
+          // Buscar por solicitud
+          const req = VeciDB.getRequestByFolio(q);
+          if (req && (req.estado === 'aprobado' || req.estado === 'aprobada')) {
+            cert = {
+              folio: req.folioCertificado || ('PLC-CR-2024-' + req.folio.split('-').pop()),
+              nombre: req.vecinoNombre,
+              run: req.vecinoRun,
+              direccion: req.direccion,
+              jjvv: req.jjvvNombre,
+              motivo: req.motivo,
+              fechaEmision: req.fechaResolucion || req.fechaSolicitud,
+              vigenciaHasta: req.vigenciaHasta || '2025-02-28',
+              vigente: true,
+              firmante: req.revisorNombre || 'Juan Pérez Castillo — Presidente JJVV'
+            };
+          } else if (req && req.informeSocial) {
+            cert = {
+              folio: req.informeSocial.folio,
+              tipo: 'informe_social',
+              nombre: req.vecinoNombre,
+              run: req.vecinoRun,
+              direccion: req.direccion,
+              jjvv: req.jjvvNombre,
+              motivo: 'Evaluación Sociohabitacional DIDECO',
+              fechaEmision: req.informeSocial.fecha,
+              vigenciaHasta: 'Indefinida (Expediente Anual)',
+              vigente: true,
+              firmante: req.informeSocial.profesional || 'Lic. Camila San Martín — DIDECO'
+            };
+          }
+        }
+      }
+
+      // Folio de prueba vencido simulado
+      if (!cert && q === 'PLC-CR-2023-00012') {
+        cert = {
+          folio: 'PLC-CR-2023-00012',
+          nombre: 'Héctor Catrileo Morales',
+          run: '10.892.411-K',
+          direccion: 'Pasaje El Roble 210, Padre Las Casas',
+          jjvv: 'JJVV Sector Rural Metrenco',
+          motivo: 'Subsidio Habitacional',
+          fechaEmision: '2023-04-10',
+          vigenciaHasta: '2023-07-10',
+          vigente: false,
+          firmante: 'Domingo Catrileo — Presidente JJVV'
+        };
+      }
+
+      // Folio de informe social prueba
+      if (!cert && q === 'PLC-INF-2024-0001') {
+        cert = {
+          folio: 'PLC-INF-2024-0001',
+          tipo: 'informe_social',
+          nombre: 'María Isabel Rodríguez Fuentes',
+          run: '12.345.678-9',
+          direccion: 'Calle Los Aromos 452, Villa Los Pinos',
+          jjvv: 'JJVV Villa Los Pinos',
+          motivo: 'Acreditación Sociohabitacional DIDECO (RSH 40%)',
+          fechaEmision: '2024-11-20',
+          vigenciaHasta: '2025-11-20 (Expediente Anual)',
+          vigente: true,
+          firmante: 'Lic. Camila San Martín — Trabajadora Social DIDECO'
+        };
+      }
+
+      currentCertData = cert;
+      card.style.display = 'block';
+
+      // 2. Si el folio NO existe
+      if (!cert) {
+        badgeBox.innerHTML = `<span class="val-badge no-encontrado">⚠️ Folio No Encontrado o Inválido</span>`;
+        iconEl.textContent = '❌';
+        tituloEl.textContent = 'Documento No Registrado';
+        folioEl.textContent = `FOLIO CONSULTADO: ${q}`;
+        grid.innerHTML = `
+          <div class="data-item" style="grid-column:1 / -1; border-color:rgba(245,158,11,0.3);">
+            <div style="color:#F59E0B; font-weight:700; margin-bottom:6px;">El folio ingresado no figura en el Registro Oficial Centralizado de Padre Las Casas.</div>
+            <div style="font-size:13px; color:#94A9C9; line-height:1.6;">
+              • Verifique que haya digitado los caracteres completos (Ej: <strong>PLC-CR-2024-00065</strong>).<br>
+              • Si el certificado fue emitido en papel antes de la digitalización municipal, debe ser validado directamente en la Dirección de Desarrollo Comunitario (DIDECO).
+            </div>
+          </div>
+        `;
+        btnDescargar.style.display = 'none';
+        return;
+      }
+
+      btnDescargar.style.display = 'inline-flex';
+
+      // 3. Determinar estado de vigencia
+      const hoy = new Date().toISOString().split('T')[0];
+      const esVigente = cert.vigente !== false && (!cert.vigenciaHasta || cert.vigenciaHasta >= hoy || cert.vigenciaHasta.includes('Indefinida'));
+
+      if (esVigente) {
+        badgeBox.innerHTML = `<span class="val-badge vigente">✓ Documento Auténtico y Vigente</span>`;
+      } else {
+        badgeBox.innerHTML = `<span class="val-badge vencido">✗ Documento Vencido (Caducado)</span>`;
+      }
+
+      const isSocial = cert.tipo === 'informe_social' || (cert.folio || '').includes('INF');
+      iconEl.textContent = isSocial ? '🤝' : '📜';
+      tituloEl.textContent = isSocial ? 'Informe Social Oficial DIDECO' : 'Certificado Oficial de Residencia';
+      folioEl.textContent = `FOLIO OFICIAL: ${cert.folio}`;
+
+      // Aplicar censura Ley 19.628
+      const mask = typeof Validators !== 'undefined' ? Validators.maskData : (v, t) => {
+        if (!v) return '—';
+        if (t === 'run') return v.slice(0, 3) + '.***.***-' + v.slice(-1);
+        return v.slice(0, 3) + '***';
+      };
+
+      const nombreCensurado = mask(cert.nombre, 'name');
+      const runCensurado = mask(cert.run, 'run');
+      const dirCensurada = mask(cert.direccion, 'address');
+
+      grid.innerHTML = `
+        <div class="data-item">
+          <div class="data-label">Titular Acreditado</div>
+          <div class="data-val">${nombreCensurado}</div>
+        </div>
+        <div class="data-item">
+          <div class="data-label">RUN Titular</div>
+          <div class="data-val" style="font-family:monospace;">${runCensurado}</div>
+        </div>
+        <div class="data-item">
+          <div class="data-label">Domicilio Habitual Cotejado</div>
+          <div class="data-val">${dirCensurada}</div>
+        </div>
+        <div class="data-item">
+          <div class="data-label">Junta de Vecinos / Sector</div>
+          <div class="data-val">${cert.jjvv || 'I. Municipalidad de Padre Las Casas'}</div>
+        </div>
+        <div class="data-item">
+          <div class="data-label">Fecha de Emisión Legal</div>
+          <div class="data-val">${cert.fechaEmision || '2024-11-20'}</div>
+        </div>
+        <div class="data-item">
+          <div class="data-label">Vigencia Oficial</div>
+          <div class="data-val" style="color:${esVigente ? '#10B981' : '#EF4444'}">${cert.vigenciaHasta || '90 días'}</div>
+        </div>
+        <div class="data-item" style="grid-column:1 / -1;">
+          <div class="data-label">Finalidad de la Solicitud</div>
+          <div class="data-val">${cert.motivo || 'Acreditación domiciliaria municipal'}</div>
+        </div>
+        <div class="data-item" style="grid-column:1 / -1;">
+          <div class="data-label">Firma y Certificación Digital</div>
+          <div class="data-val" style="color:#00D4E8;">✓ ${cert.firmante || 'Firma Autorizada — Ilustre Municipalidad de Padre Las Casas'}</div>
+        </div>
+      `;
+    }
+
+    function descargarCopiaVerificada() {
+      if (!currentCertData) return;
+      if (typeof VeciPDF !== 'undefined' && typeof VeciPDF.descargarCertificado === 'function') {
+        VeciPDF.descargarCertificado(currentCertData);
+      } else {
+        alert('Generando descarga del certificado verificado...');
+      }
+    }
+
+    // Al cargar la página: Si viene ?folio= en la URL, ejecutar automáticamente
+    document.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const folioParam = params.get('folio');
+      if (folioParam) {
+        consultarFolio(folioParam);
+      }
+    });
+  </script>
+</body>
+</html>

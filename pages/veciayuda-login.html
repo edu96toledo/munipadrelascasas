@@ -546,7 +546,9 @@
         setTimeout(() => {
           if (user.rol === 'social') {
             window.location.href = 'veciayuda-social.html';
-          } else if (user.rol === 'admin' || user.rol === 'funcionario') {
+          } else if (user.rol === 'funcionario') {
+            window.location.href = 'veciayuda-funcionario.html';
+          } else if (user.rol === 'admin') {
             window.location.href = 'veciayuda-admin.html';
           } else if (user.rol === 'jjvv') {
             window.location.href = 'veciayuda-jjvv.html';
